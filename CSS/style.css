@@ -119,3 +119,170 @@ tr:hover {
 .status-available { background-color: #28a745; }
 .status-borrowed { background-color: #dc3545; }
 .status-maintenance { background-color: #6c757d; }
+
+/*
+ * =========================================
+ * CSS สำหรับ KPI Boxes (ดีไซน์ใหม่แบบมีไอคอน)
+ * =========================================
+ */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.kpi-box {
+    background-color: #ffffff;
+    padding: 25px 30px; /* เพิ่ม padding */
+    border-radius: 12px; /* โค้งมนมากขึ้น */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* เงาชัดขึ้น */
+    
+    /* นี่คือหัวใจ (Flexbox) */
+    display: flex; 
+    justify-content: space-between; /* แบ่งซ้าย (Text) ขวา (Icon) */
+    align-items: center; /* จัดให้อยู่กลางแนวตั้ง */
+    
+    border-left-width: 7px; /* เส้นขอบหนาขึ้น */
+    border-left-style: solid;
+}
+
+.kpi-text p {
+    margin: 0;
+    font-size: 0.9em; /* เล็กลงเล็กน้อย */
+    color: #666;
+    font-weight: bold;
+}
+
+.kpi-text h2 {
+    margin: 5px 0 0 0;
+    font-size: 2.2em; /* เล็กลงเล็กน้อย */
+    color: #333;
+}
+
+/* ส่วนของไอคอน (วงกลม) */
+.kpi-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em; /* ขนาดไอคอน */
+    color: #ffffff; /* สีไอคอนข้างใน */
+}
+
+/*
+ * =========================================
+ * CSS สำหรับ KPI Boxes (ดีไซน์ใหม่แบบ stat-card)
+ * =========================================
+ */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    display: flex; 
+    justify-content: space-between; /* แบ่งซ้าย (Text) ขวา (Icon) */
+    align-items: center; 
+    border-left-width: 7px; /* เส้นขอบหนาขึ้น */
+    border-left-style: solid;
+}
+
+.stat-card-info .title {
+    margin: 0;
+    font-size: 0.9em; 
+    color: #555; /* สีเทาเข้ม */
+    font-weight: bold;
+}
+
+.stat-card-info .value {
+    margin: 5px 0 0 0;
+    font-size: 2.2em; 
+    color: #333;
+    font-weight: bold;
+}
+
+/* ส่วนของไอคอน (วงกลม) */
+.stat-card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em; /* ขนาดไอคอน */
+    color: #ffffff; /* สีไอคอนข้างใน */
+}
+
+/* * =========================================
+ * การกำหนดสี (ตามตัวอย่าง)
+ * =========================================
+ */
+
+/* 1. "กำลังถูกยืม" (สีแดง) */
+.stat-card.kpi-borrowed {
+    border-left-color: #dc3545;
+}
+.stat-card.kpi-borrowed .stat-card-info .value {
+    color: #dc3545;
+}
+.stat-card.kpi-borrowed .stat-card-icon {
+    background-color: #dc3545;
+}
+
+/* 2. "พร้อมใช้งาน" (สีเขียว) */
+.stat-card.kpi-available {
+    border-left-color: #28a745;
+}
+.stat-card.kpi-available .stat-card-info .value {
+    color: #28a745;
+}
+.stat-card.kpi-available .stat-card-icon {
+    background-color: #28a745;
+}
+
+/* 3. "เกินกำหนดคืน" (สีน้ำเงิน) */
+.stat-card.kpi-overdue {
+    border-left-color: #007bff;
+}
+.stat-card.kpi-overdue .stat-card-info .value {
+    color: #007bff;
+}
+.stat-card.kpi-overdue .stat-card-icon {
+    background-color: #007bff;
+}
+
+/* 4. "ซ่อมบำรุง" (สีส้ม) */
+.stat-card.kpi-maintenance {
+    border-left-color: #fd7e14;
+}
+.stat-card.kpi-maintenance .stat-card-info .value {
+    color: #fd7e14;
+}
+.stat-card.kpi-maintenance .stat-card-icon {
+    background-color: #fd7e14;
+}
+
+
+/* สำหรับหน้าจอขนาดเล็ก (มือถือ) ให้แสดง 2 คอลัมน์ */
+@media (max-width: 992px) {
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 576px) {
+    /* บนจอมือถือเล็กมาก ให้เหลือ 1 คอลัมน์ */
+    .kpi-grid {
+        grid-template-columns: repeat(1, 1fr);
+    }
+}
