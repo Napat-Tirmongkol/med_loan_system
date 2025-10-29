@@ -3,46 +3,55 @@
 include('includes/check_session.php');
 require_once('db_connect.php');
 
-// 2. ตรวจสอบสิทธิ์ Admin
+// 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    die("คุณไม่มีสิทธิ์ดำเนินการ <a href='index.php'>กลับหน้าหลัก</a>");
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
 }
+header('Content-Type: application/json');
 
-// 3. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
+// 3. สร้างตัวแปรสำหรับเก็บคำตอบ
+$response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
+
+// 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 4. รับข้อมูลจากฟอร์ม
+    // 5. รับข้อมูลจากฟอร์ม
     $borrower_id  = isset($_POST['borrower_id']) ? (int)$_POST['borrower_id'] : 0;
     $full_name    = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
     $contact_info = isset($_POST['contact_info']) ? trim($_POST['contact_info']) : null;
 
     if ($borrower_id == 0 || empty($full_name)) {
-        die("ข้อมูลไม่ครบถ้วน (ID หรือ Full Name) <a href='manage_borrowers.php'>กลับไปแก้ไข</a>");
+        $response['message'] = 'ข้อมูลไม่ครบถ้วน (ID หรือ ชื่อ-สกุล)';
+        echo json_encode($response);
+        exit;
     }
-    
+
     if (empty($contact_info)) $contact_info = null;
 
-    // 5. ดำเนินการ UPDATE
+    // 6. ดำเนินการ UPDATE
     try {
-        $sql = "UPDATE med_borrowers 
+        $sql = "UPDATE med_borrowers
                 SET full_name = ?, contact_info = ?
                 WHERE id = ?";
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$full_name, $contact_info, $borrower_id]);
 
-        // 6. ส่งผู้ใช้กลับไปหน้า "จัดการผู้ยืม"
-        header("Location: manage_borrowers.php?edit=success");
-        exit;
+        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
+        $response['status'] = 'success';
+        $response['message'] = 'บันทึกการเปลี่ยนแปลงสำเร็จ';
 
     } catch (PDOException $e) {
-        // 7. หากเกิดข้อผิดพลาด
-        die("เกิดข้อผิดพลาดในการบันทึก: " . $e->getMessage() . " <a href='manage_borrowers.php'>กลับไปแก้ไข</a>");
+        $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
     }
 
 } else {
-    // ถ้าไม่ได้เข้ามาหน้านี้ผ่านการ POST
-    header("Location: manage_borrowers.php");
-    exit;
+    $response['message'] = 'ต้องใช้วิธี POST เท่านั้น';
 }
+
+// 8. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
+echo json_encode($response);
+exit;
 ?>

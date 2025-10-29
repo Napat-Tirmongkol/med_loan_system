@@ -23,15 +23,39 @@ try {
 $page_title = "จัดการผู้ยืม";
 $current_page = "manage_user";
 include('includes/header.php');
+// ตรวจสอบ $_GET parameters สำหรับแสดงข้อความแจ้งเตือน
+$message = '';
+$message_type = ''; // 'success' หรือ 'error'
+
+if (isset($_GET['add']) && $_GET['add'] == 'success') {
+    $message = 'เพิ่มผู้ยืมใหม่สำเร็จ!';
+    $message_type = 'success';
+} elseif (isset($_GET['edit']) && $_GET['edit'] == 'success') {
+    $message = 'แก้ไขข้อมูลผู้ยืมสำเร็จ!';
+    $message_type = 'success';
+} elseif (isset($_GET['delete']) && $_GET['delete'] == 'success') {
+    $message = 'ลบข้อมูลผู้ยืมสำเร็จ!';
+    $message_type = 'success';
+} elseif (isset($_GET['error'])) {
+    $message_type = 'error';
+    if ($_GET['error'] == 'fk_constraint') {
+        $message = 'ไม่สามารถลบผู้ยืมได้ เนื่องจากมีประวัติการยืมค้างอยู่!';
+    } elseif ($_GET['error'] == 'not_found') {
+        $message = 'ไม่พบข้อมูลผู้ยืมที่ต้องการลบ!';
+    } elseif ($_GET['error'] == 'no_id') {
+        $message = 'ไม่ได้ระบุ ID ผู้ยืม!';
+    } else {
+        $message = 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
+    }
+}
 ?>
 
 <div class="container">
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>👥 จัดการรายชื่อผู้ยืม</h2>
-        
         <button type="button" class="btn btn-borrow" style="font-size: 16px;" onclick="openAddBorrowerPopup()">
-            ➕ เพิ่มผู้ยืมใหม่
+            <i class="fa-solid fa-plus"></i> เพิ่มผู้ยืม
         </button>
     </div>
 
@@ -57,11 +81,13 @@ include('includes/header.php');
                         <td><?php echo htmlspecialchars($borrower['full_name']); ?></td>
                         <td><?php echo htmlspecialchars($borrower['contact_info']); ?></td>
                         <td>
-                            <a href="edit_borrower_form.php?id=<?php echo $borrower['id']; ?>" class="btn btn-manage">แก้ไข</a>
-                            
-                            <a href="delete_borrower_process.php?id=<?php echo $borrower['id']; ?>" 
-                               class="btn" 
-                               style="background-color: #dc3545;" 
+                            <button type="button"
+                                    class="btn btn-manage"
+                                    onclick="openEditBorrowerPopup(<?php echo $borrower['id']; ?>)">แก้ไข</button>
+
+                            <a href="delete_borrower_process.php?id=<?php echo $borrower['id']; ?>"
+                               class="btn"
+                               style="background-color: #dc3545;"
                                onclick="confirmDelete(event, <?php echo $borrower['id']; ?>)">ลบ</a>
                         </td>
                     </tr>
@@ -76,7 +102,7 @@ include('includes/header.php');
 <script>
 // 1. ฟังก์ชันสำหรับ "ลบ" (อันเดิม)
 function confirmDelete(event, id) {
-    event.preventDefault(); 
+    event.preventDefault();
     const url = event.currentTarget.href;
     Swal.fire({
         title: "คุณแน่ใจหรือไม่?",
@@ -89,16 +115,16 @@ function confirmDelete(event, id) {
         cancelButtonText: "ยกเลิก"
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = url;
+            window.location.href = url; // ไปยังหน้า process การลบ
         }
     });
 }
 
-// 2. ฟังก์ชันใหม่สำหรับ "เพิ่ม" (Popup Form)
+// 2. ฟังก์ชันสำหรับ "เพิ่ม" (Popup Form - อันเดิม)
 function openAddBorrowerPopup() {
     Swal.fire({
         title: '➕ เพิ่มข้อมูลผู้ยืมใหม่',
-        // นี่คือ HTML ของฟอร์ม (จากไฟล์ add_borrower_form.php)
+        html: `... (โค้ด HTML ฟอร์มเพิ่มผู้ยืม) ...`, // (ย่อส่วนนี้เพื่อความกระชับ)
         html: `
             <form id="swalAddForm" style="text-align: left; margin-top: 20px;">
                 <div style="margin-bottom: 15px;">
@@ -115,51 +141,112 @@ function openAddBorrowerPopup() {
         cancelButtonText: 'ยกเลิก',
         confirmButtonColor: '#28a745',
         focusConfirm: false,
-        
-        // ส่วนนี้คือ "AJAX"
         preConfirm: () => {
-            // 1. ดึงข้อมูลจากฟอร์มใน Popup
             const form = document.getElementById('swalAddForm');
             const fullName = form.querySelector('#swal_full_name').value;
-
             if (!fullName) {
-                Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล ผู้ยืม'); // แสดง Error ถ้าไม่กรอก
+                Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล ผู้ยืม');
                 return false;
             }
-
-            // 2. ส่งข้อมูลไปเบื้องหลัง (AJAX)
-            return fetch('add_borrower_process.php', {
-                method: 'POST',
-                body: new FormData(form) // ส่งข้อมูลฟอร์มทั้งหมด
-            })
-            .then(response => response.json()) // รอคำตอบแบบ JSON
-            .then(data => {
-                if (data.status !== 'success') {
-                    throw new Error(data.message); // ถ้า PHP ตอบ error
-                }
-                return data;
-            })
-            .catch(error => {
-                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
-            });
+            return fetch('add_borrower_process.php', { method: 'POST', body: new FormData(form) })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') throw new Error(data.message);
+                    return data;
+                })
+                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
         }
     }).then((result) => {
-        // 3. เมื่อทุกอย่างสำเร็จ (AJAX สำเร็จ และกดยืนยัน)
         if (result.isConfirmed) {
-            Swal.fire(
-                'บันทึกสำเร็จ!',
-                'เพิ่มผู้ยืมใหม่เรียบร้อยแล้ว',
-                'success'
-            ).then(() => {
-                // 4. รีเฟรชหน้าเพื่อแสดงข้อมูลใหม่
-                location.reload(); 
-            });
+            Swal.fire('บันทึกสำเร็จ!', 'เพิ่มผู้ยืมใหม่เรียบร้อยแล้ว', 'success').then(() => location.reload());
         }
     });
 }
+
+// 3. ฟังก์ชันใหม่สำหรับ "แก้ไข" (Popup Form)
+function openEditBorrowerPopup(borrowerId) {
+    // 1. แสดง Popup "กำลังโหลด..."
+    Swal.fire({
+        title: 'กำลังโหลดข้อมูลผู้ยืม...',
+        text: 'กรุณารอสักครู่',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    // 2. ดึงข้อมูล "เก่า" ของผู้ยืม (AJAX GET)
+    fetch(`get_borrower_data.php?id=${borrowerId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                throw new Error(data.message); // เช่น "ไม่พบข้อมูล"
+            }
+            const borrower = data.borrower;
+
+            // 3. สร้าง HTML สำหรับฟอร์มแก้ไข
+            const formHtml = `
+                <form id="swalEditBorrowerForm" style="text-align: left; margin-top: 20px;">
+                    <input type="hidden" name="borrower_id" value="${borrower.id}">
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล ผู้ยืม:</label>
+                        <input type="text" name="full_name" id="swal_edit_full_name" value="${borrower.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_contact_info" style="font-weight: bold; display: block; margin-bottom: 5px;">ข้อมูลติดต่อ:</label>
+                        <input type="text" name="contact_info" id="swal_edit_contact_info" value="${borrower.contact_info || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                </form>`;
+
+            // 4. เปิด SweetAlert Popup ที่มีฟอร์ม
+            Swal.fire({
+                title: '🔧 แก้ไขข้อมูลผู้ยืม',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#007bff', // สีน้ำเงิน
+                focusConfirm: false,
+                preConfirm: () => {
+                    // 5. ดึงข้อมูลจากฟอร์มใน Popup
+                    const form = document.getElementById('swalEditBorrowerForm');
+                    const fullName = form.querySelector('#swal_edit_full_name').value;
+                    if (!fullName) {
+                        Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล ผู้ยืม');
+                        return false; // หยุด
+                    }
+
+                    // 6. ส่งข้อมูลไปเบื้องหลัง (AJAX - POST)
+                    return fetch('edit_borrower_process.php', {
+                        method: 'POST',
+                        body: new FormData(form) // ส่งข้อมูลฟอร์ม
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') {
+                            throw new Error(data.message);
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                    });
+                }
+            }).then((result) => {
+                // 7. เมื่อทุกอย่างสำเร็จ
+                if (result.isConfirmed) {
+                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ยืมเรียบร้อย', 'success')
+                    .then(() => location.reload()); // รีเฟรชหน้า
+                }
+            });
+        })
+        .catch(error => {
+            // 8. กรณีดึงข้อมูล (ข้อ 2) ล้มเหลว
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+        });
+}
 </script>
+
 
 <?php
 // 7. เรียกใช้ Footer
-include('includes/footer.php'); 
+include('includes/footer.php');
 ?>
