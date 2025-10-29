@@ -3,69 +3,65 @@
 include('includes/check_session.php');
 require_once('db_connect.php');
 
-// 2. ***** ตรวจสอบสิทธิ์ Admin *****
-//    (ป้องกันอีกชั้นเผื่อมีคนส่งข้อมูลมาหน้านี้ตรงๆ)
+// 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    die("คุณไม่มีสิทธิ์ดำเนินการ <a href='index.php'>กลับหน้าหลัก</a>");
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
 }
+header('Content-Type: application/json');
 
-// 3. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
+// 3. สร้างตัวแปรสำหรับเก็บคำตอบ
+$response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
+
+// 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 4. รับข้อมูลจากฟอร์ม (จาก <input type="hidden">)
+    // 5. รับข้อมูลจากฟอร์ม (ที่ส่งมาจาก AJAX)
     $equipment_id   = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0;
     $transaction_id = isset($_POST['transaction_id']) ? (int)$_POST['transaction_id'] : 0;
 
-    // 5. ตรวจสอบข้อมูลเบื้องต้น
     if ($equipment_id == 0 || $transaction_id == 0) {
-        die("ข้อมูลไม่ครบถ้วน <a href='index.php'>กลับหน้าหลัก</a>");
+        $response['message'] = 'ข้อมูล Transaction ID หรือ Equipment ID ไม่ครบถ้วน';
+        echo json_encode($response);
+        exit;
     }
 
-    // 6. เริ่ม Transaction
+    // 6. เริ่ม Transaction (การคืน)
     try {
-        // 6.1 เริ่มการ "ห่อ" คำสั่ง
         $pdo->beginTransaction();
 
-        // 6.2 คำสั่งที่ 1: UPDATE สถานะอุปกรณ์ (med_equipment)
-        //     เปลี่ยนสถานะกลับเป็น 'available'
-        $sql_update_equip = "UPDATE med_equipment 
-                             SET status = 'available' 
-                             WHERE id = ? AND status = 'borrowed'"; // คืนได้เฉพาะของที่ถูกยืม
+        // 6.1 UPDATE อุปกรณ์เป็น 'available'
+        $sql_update_equip = "UPDATE med_equipment SET status = 'available' WHERE id = ? AND status = 'borrowed'";
         $stmt_update_equip = $pdo->prepare($sql_update_equip);
         $stmt_update_equip->execute([$equipment_id]);
-
-        // 6.3 คำสั่งที่ 2: UPDATE ประวัติการยืม (med_transactions)
-        //     เปลี่ยนสถานะเป็น 'returned' และบันทึกวันที่คืน (NOW())
-        $sql_update_trans = "UPDATE med_transactions 
-                             SET status = 'returned', return_date = NOW()
-                             WHERE id = ? AND status = 'borrowed'";
+        
+        // 6.2 UPDATE ประวัติการยืมเป็น 'returned'
+        $sql_update_trans = "UPDATE med_transactions SET status = 'returned', return_date = NOW() WHERE id = ? AND status = 'borrowed'";
         $stmt_update_trans = $pdo->prepare($sql_update_trans);
         $stmt_update_trans->execute([$transaction_id]);
-
-        // 6.4 ตรวจสอบว่าสำเร็จทั้งคู่หรือไม่
-        // (ถ้าแถวใดแถวหนึ่งไม่ถูกอัปเดต เช่น ของไม่ได้ถูกยืมอยู่)
+        
+        // 6.3 ตรวจสอบว่าสำเร็จทั้งคู่
         if ($stmt_update_equip->rowCount() == 0 || $stmt_update_trans->rowCount() == 0) {
-            // ถ้ามีบางอย่างผิดปกติ (เช่น อุปกรณ์ไม่ได้ถูกยืม)
-            throw new Exception("ไม่สามารถคืนอุปกรณ์ได้ อาจมีข้อผิดพลาดของข้อมูล");
+            throw new Exception("ไม่สามารถคืนอุปกรณ์ได้ (อาจถูกคืนไปแล้ว หรือข้อมูลผิดพลาด)");
         }
-
-        // 6.5 ถ้าทุกอย่างสำเร็จ
+        
         $pdo->commit();
-
-        // 7. ส่งผู้ใช้กลับไปหน้าหลัก
-        header("Location: index.php?return=success");
-        exit;
+        
+        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
+        $response['status'] = 'success';
+        $response['message'] = 'รับคืนอุปกรณ์เรียบร้อย';
 
     } catch (Exception $e) {
-        // 8. หากเกิดข้อผิดพลาด
-        $pdo->rollBack(); // "ย้อนกลับ" การเปลี่ยนแปลงทั้งหมด
-
-        die("เกิดข้อผิดพลาดในการรับคืน: " . $e->getMessage() . " <a href='index.php'>กลับหน้าหลัก</a>");
+        $pdo->rollBack();
+        $response['message'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
     }
 
 } else {
-    // ถ้าไม่ได้เข้ามาหน้านี้ผ่านการ POST
-    header("Location: index.php");
-    exit;
+    $response['message'] = 'ต้องใช้วิธี POST เท่านั้น';
 }
+
+// 8. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
+echo json_encode($response);
+exit;
 ?>
