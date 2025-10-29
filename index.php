@@ -1,14 +1,14 @@
 <?php
-// 1. ตั้งค่าตัวแปรสำหรับหน้านี้ (เพื่อให้ header.php นำไปใช้)
+// 1. "จ้างยามมาเฝ้าประตู" (ต้องอยู่บนสุดเสมอ!)
+//    ไฟล์นี้จะตรวจสอบว่า Log in หรือยัง ถ้ายัง จะเด้งไปหน้า login.php
+include('includes/check_session.php'); 
+
+// 2. ตั้งค่าตัวแปรสำหรับหน้านี้ (เพื่อให้ header.php นำไปใช้)
 $page_title = "Dashboard - ภาพรวม";
 $current_page = "index"; // ใช้สำหรับไฮไลท์เมนูใน sidebar
 
-// 2. เรียกใช้ไฟล์ Header (ส่วนหัว + Sidebar)
+// 3. เรียกใช้ไฟล์ Header (ส่วนหัว + Sidebar) (เรียกแค่ครั้งเดียว)
 include('includes/header.php'); 
-
-/* * ตรงนี้ เราสามารถเริ่มเขียน PHP เพื่อดึงข้อมูลจาก Database ได้
- * แต่ตอนนี้เราจะใช้ข้อมูลจำลองไปก่อน
- */
 
 ?>
 
@@ -58,19 +58,6 @@ include('includes/header.php');
     </table>
 </div>
 <?php
-// 1. "จ้างยามมาเฝ้าประตู"
-//    ไฟล์นี้จะตรวจสอบว่า Log in หรือยัง ถ้ายัง จะเด้งไปหน้า login.php
-include('includes/check_session.php'); 
-
-// 2. ตั้งค่าตัวแปรสำหรับหน้านี้ (ของเดิม)
-$page_title = "Dashboard - ภาพรวม";
-$current_page = "index"; 
-
-// 3. เรียกใช้ไฟล์ Header (ของเดิม)
-include('includes/header.php'); 
-?>
-
-<?php
-// 4. เรียกใช้ไฟล์ Footer (ของเดิม)
+// 5. เรียกใช้ไฟล์ Footer (ส่วนท้าย)
 include('includes/footer.php'); 
 ?>
