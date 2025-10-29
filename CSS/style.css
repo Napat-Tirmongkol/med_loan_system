@@ -1,0 +1,121 @@
+/* * CSS สำหรับ Layout (โครงสร้าง)
+ */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0; /* ลบ margin เริ่มต้นของ body */
+    background-color: #f4f4f4;
+}
+
+/* 1. ส่วน Header */
+.header {
+    background-color: #007bff; /* สีน้ำเงิน */
+    color: white;
+    padding: 15px 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    position: fixed; /* ทำให้ Header ค้างอยู่ด้านบน */
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000; /* ทำให้ Header อยู่หน้าสุด */
+}
+.header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+/* 2. ส่วน Sidebar (เมนูด้านข้าง) */
+.sidebar {
+    width: 250px; /* ความกว้างของ Sidebar */
+    background-color: #343a40; /* สีเทามืด */
+    color: white;
+    position: fixed; /* ทำให้ Sidebar ค้างอยู่ด้านข้าง */
+    top: 60px; /* เว้นที่สำหรับ Header (ความสูงของ header + padding) */
+    left: 0;
+    bottom: 0;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+.sidebar ul {
+    list-style-type: none; /* ลบ Bullet point */
+    padding: 0;
+    margin: 0;
+}
+.sidebar ul li {
+    padding: 15px 20px;
+    border-bottom: 1px solid #495057; /* เส้นคั่นเมนู */
+}
+.sidebar ul li a {
+    text-decoration: none;
+    color: #f8f9fa; /* สีขาวสว่าง */
+    display: block;
+}
+.sidebar ul li a:hover {
+    background-color: #495057; /* สีพื้นหลังเมื่อเมาส์ชี้ */
+}
+.sidebar ul li.active {
+    background-color: #007bff; /* สีเมนูที่ถูกเลือก */
+}
+
+/* 3. ส่วนเนื้อหาหลัก (Main Content) */
+.content {
+    margin-top: 60px;  /* เว้นที่สำหรับ Header */
+    margin-left: 250px; /* เว้นที่สำหรับ Sidebar */
+    padding: 20px;
+}
+
+/* * CSS สำหรับตารางและปุ่ม (ของเดิม)
+ */
+.container {
+    max-width: 1000px; /* ปรับขนาดให้พอดีกับ content */
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.container h2 {
+    color: #333;
+    text-align: center;
+    margin-top: 0;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+th {
+    background-color: #f2f2f2;
+    color: #555;
+}
+tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* สไตล์สำหรับปุ่ม (ของเดิม) */
+.btn {
+    padding: 8px 12px;
+    text-decoration: none;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+}
+.btn-borrow { background-color: #28a745; }
+.btn-return { background-color: #007bff; }
+.btn-manage { background-color: #ffc107; }
+
+/* สไตล์สำหรับสถานะ (Status) (ของเดิม) */
+.status {
+    padding: 5px 8px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+.status-available { background-color: #28a745; }
+.status-borrowed { background-color: #dc3545; }
+.status-maintenance { background-color: #6c757d; }
