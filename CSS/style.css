@@ -229,40 +229,40 @@ tr:hover {
  * =========================================
  */
 
-/* 1. "กำลังถูกยืม" (สีแดง) */
+/* 1. "กำลังถูกยืม" (เปลี่ยนเป็น สีเขียว) */
 .stat-card.kpi-borrowed {
-    border-left-color: #dc3545;
+    border-left-color: #28a745; /* สีเขียว */
 }
 .stat-card.kpi-borrowed .stat-card-info .value {
-    color: #dc3545;
-}
-.stat-card.kpi-borrowed .stat-card-icon {
-    background-color: #dc3545;
-}
-
-/* 2. "พร้อมใช้งาน" (สีเขียว) */
-.stat-card.kpi-available {
-    border-left-color: #28a745;
-}
-.stat-card.kpi-available .stat-card-info .value {
     color: #28a745;
 }
-.stat-card.kpi-available .stat-card-icon {
+.stat-card.kpi-borrowed .stat-card-icon {
     background-color: #28a745;
 }
 
-/* 3. "เกินกำหนดคืน" (สีน้ำเงิน) */
-.stat-card.kpi-overdue {
-    border-left-color: #007bff;
+/* 2. "พร้อมใช้งาน" (เปลี่ยนเป็น สีน้ำเงิน) */
+.stat-card.kpi-available {
+    border-left-color: #007bff; /* สีน้ำเงิน */
 }
-.stat-card.kpi-overdue .stat-card-info .value {
+.stat-card.kpi-available .stat-card-info .value {
     color: #007bff;
 }
-.stat-card.kpi-overdue .stat-card-icon {
+.stat-card.kpi-available .stat-card-icon {
     background-color: #007bff;
 }
 
-/* 4. "ซ่อมบำรุง" (สีส้ม) */
+/* 3. "เกินกำหนดคืน" (เปลี่ยนเป็น สีแดง) */
+.stat-card.kpi-overdue {
+    border-left-color: #dc3545; /* สีแดง */
+}
+.stat-card.kpi-overdue .stat-card-info .value {
+    color: #dc3545;
+}
+.stat-card.kpi-overdue .stat-card-icon {
+    background-color: #dc3545;
+}
+
+/* 4. "ซ่อมบำรุง" (สีส้ม - คงเดิม) */
 .stat-card.kpi-maintenance {
     border-left-color: #fd7e14;
 }
