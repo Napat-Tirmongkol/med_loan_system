@@ -7,7 +7,7 @@ require_once('db_connect.php');
 
 // 3. ตั้งค่าตัวแปรสำหรับหน้านี้
 $page_title = "Dashboard - ภาพรวม";
-$current_page = "index"; 
+$current_page = "index"; // หรือ 'manage_equip' ถ้าต้องการให้เมนู "จัดการอุปกรณ์" active
 
 // 4. เรียกใช้ไฟล์ Header
 include('includes/header.php'); 
@@ -24,8 +24,17 @@ try {
 ?>
 
 <div class="container">
-    <h2>รายการอุปกรณ์ทั้งหมด</h2>
 
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>รายการอุปกรณ์ทั้งหมด</h2>
+        
+        <?php // ปุ่ม "เพิ่มอุปกรณ์ใหม่" (Admin Only) ?>
+        <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
+            <a href="add_equipment_form.php" class="btn btn-borrow" style="font-size: 16px;">
+                ➕ เพิ่มอุปกรณ์ใหม่
+            </a>
+        <?php endif; ?>
+    </div>
     <table>
         <thead>
             <tr>
@@ -36,9 +45,7 @@ try {
                 <th>จัดการ</th>
             </tr>
         </thead>
-        
         <tbody>
-            
             <?php if (empty($equipments)): ?>
                 <tr>
                     <td colspan="5" style="text-align: center;">ยังไม่มีอุปกรณ์ในระบบ</td>
@@ -50,7 +57,6 @@ try {
                         <td><?php echo $i; ?></td>
                         <td><?php echo htmlspecialchars($row['name']); ?></td>
                         <td><?php echo htmlspecialchars($row['serial_number']); ?></td>
-                        
                         <td>
                             <?php if ($row['status'] == 'available'): ?>
                                 <span class="status status-available">ว่าง</span>
@@ -60,31 +66,27 @@ try {
                                 <span class="status status-maintenance">ซ่อมบำรุง</span>
                             <?php endif; ?>
                         </td>
-
                         <td>
                             <?php if ($row['status'] == 'available'): ?>
                                 <a href="borrow_form.php?id=<?php echo $row['id']; ?>" class="btn btn-borrow">ยืม</a>
-                            
                             <?php elseif ($row['status'] == 'borrowed'): ?>
                                 <?php if ($_SESSION['role'] == 'admin'): ?>
                                     <a href="return_form.php?id=<?php echo $row['id']; ?>" class="btn btn-return">รับคืน</a>
                                 <?php else: ?>
                                     <span style="color: #6c757d;">(ถูกยืมอยู่)</span>
                                 <?php endif; ?>
-                                
                             <?php else: // 'maintenance' ?>
-                                <?php if ($_SESSION['role'] == 'admin'): ?>
-                                    <a href="edit_form.php?id=<?php echo $row['id']; ?>" class="btn btn-manage">แก้ไข</a>
-                                <?php else: ?>
-                                    <span style="color: #6c757d;">(ซ่อมบำรุง)</span>
-                                <?php endif; ?>
+                                <span style="color: #6c757d;">(ซ่อมบำรุง)</span>
+                            <?php endif; ?>
+
+                            <?php if ($_SESSION['role'] == 'admin'): ?>
+                                <a href="edit_form.php?id=<?php echo $row['id']; ?>" class="btn btn-manage" style="margin-left: 5px;">แก้ไข</a>
                             <?php endif; ?>
                         </td>
-                        </tr>
+                    </tr>
                 <?php $i++; ?>
                 <?php endforeach; ?>
             <?php endif; ?>
-
         </tbody>
     </table>
 </div>

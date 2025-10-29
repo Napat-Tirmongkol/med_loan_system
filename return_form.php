@@ -3,15 +3,13 @@
 include('includes/check_session.php');
 require_once('db_connect.php');
 
-// 2. ***** ตรวจสอบสิทธิ์ Admin *****
-//    หน้านี้เฉพาะ Admin เท่านั้น
+// 2. ตรวจสอบสิทธิ์ Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    // ถ้าไม่ใช่ Admin ให้เด้งกลับไปหน้าหลัก
     header("Location: index.php");
     exit;
 }
 
-// ----- ส่วนดึงข้อมูล -----
+// ----- ส่วนดึงข้อมูล (เหมือนเดิม) -----
 $equipment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 $transaction_data = null;
 
@@ -20,47 +18,32 @@ if ($equipment_id == 0) {
 }
 
 try {
-    // 1. ดึงข้อมูลการยืม (Transaction) ที่ยัง "active" (status='borrowed')
-    //    เราจะ JOIN ตารางเพื่อเอาชื่ออุปกรณ์และชื่อผู้ยืมมาแสดงด้วย
     $sql = "SELECT 
-                t.id as transaction_id, 
-                t.borrow_date, 
-                t.due_date,
-                e.name as equipment_name, 
-                e.serial_number as equipment_serial,
-                b.full_name as borrower_name,
-                b.contact_info as borrower_contact
+                t.id as transaction_id, t.borrow_date, t.due_date,
+                e.name as equipment_name, e.serial_number as equipment_serial,
+                b.full_name as borrower_name, b.contact_info as borrower_contact
             FROM med_transactions t
             JOIN med_equipment e ON t.equipment_id = e.id
             JOIN med_borrowers b ON t.borrower_id = b.id
             WHERE t.equipment_id = ? AND t.status = 'borrowed'
             ORDER BY t.borrow_date DESC 
-            LIMIT 1"; // เอาเฉพาะรายการล่าสุดที่ยังไม่คืน
-
+            LIMIT 1"; 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$equipment_id]);
     $transaction_data = $stmt->fetch(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
     die("เกิดข้อผิดพลาดในการดึงข้อมูล: " . $e->getMessage());
 }
 
-// 2. ตรวจสอบว่าพบข้อมูลการยืมหรือไม่
 if (!$transaction_data) {
-    // ถ้าไม่พบ (เช่น อุปกรณ์ไม่ได้ถูกยืมอยู่ หรือใส่ ID มั่ว)
     echo "<h1>ไม่พบข้อมูลการยืมสำหรับอุปกรณ์นี้</h1>";
-    echo "<p>อุปกรณ์นี้อาจจะยังไม่ได้ถูกยืม หรือข้อมูลผิดพลาด</p>";
     echo "<a href='index.php'>กลับไปหน้าหลัก</a>";
-    exit; // หยุดทำงาน
+    exit;
 }
-
 // ----- สิ้นสุดส่วนดึงข้อมูล -----
 
-// 3. ตั้งค่าตัวแปรสำหรับ Header
 $page_title = "รับคืนอุปกรณ์";
-$current_page = "return"; // (ตั้งชื่อเมนูสมมติ)
-
-// 4. เรียกใช้ Header
+$current_page = "return"; 
 include('includes/header.php');
 ?>
 
@@ -77,7 +60,7 @@ include('includes/header.php');
         <p><strong>วันที่กำหนดคืน:</strong> <?php echo date('d/m/Y', strtotime($transaction_data['due_date'])); ?></p>
     </div>
 
-    <form action="return_process.php" method="POST">
+    <form action="return_process.php" method="POST" id="returnForm">
         
         <input type="hidden" name="transaction_id" value="<?php echo $transaction_data['transaction_id']; ?>">
         <input type="hidden" name="equipment_id" value="<?php echo $equipment_id; ?>">
@@ -87,13 +70,36 @@ include('includes/header.php');
         </p>
 
         <div>
-            <button type="submit" class="btn btn-return" style="font-size: 16px;">
+            <button type="button" onclick="confirmReturn()" class="btn btn-return" style="font-size: 16px;">
                 ยืนยันการรับคืน
             </button>
             <a href="index.php" class="btn" style="background-color: #6c757d;">ยกเลิก</a>
         </div>
     </form>
 </div>
+
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmReturn() {
+    // นี่คือโค้ดที่คุณส่งมา (ผมปรับแต่งข้อความเล็กน้อยให้เข้ากับบริบท)
+    Swal.fire({
+        title: "ยืนยันการรับคืน?",
+        text: "คุณได้ตรวจสอบอุปกรณ์แล้วใช่หรือไม่",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "ใช่, ยืนยัน",
+        cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // ถ้ากดยืนยัน ให้สั่ง Submit ฟอร์มที่มี id 'returnForm'
+            document.getElementById('returnForm').submit();
+        }
+    });
+}
+</script>
 
 <?php
 // 6. เรียกใช้ Footer
