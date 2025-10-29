@@ -1,31 +1,25 @@
 <?php
-// 1. "จ้างยามมาเฝ้าประตู" (ต้องอยู่บนสุดเสมอ!)
+// 1. "จ้างยามมาเฝ้าประตู"
 include('includes/check_session.php'); 
 
-// 2. เรียกใช้ไฟล์เชื่อมต่อ DB (*** เพิ่มไฟล์นี้เข้ามา ***)
-//    เราต้องการตัวแปร $pdo เพื่อใช้ดึงข้อมูล
+// 2. เรียกใช้ไฟล์เชื่อมต่อ DB
 require_once('db_connect.php');
 
 // 3. ตั้งค่าตัวแปรสำหรับหน้านี้
 $page_title = "Dashboard - ภาพรวม";
 $current_page = "index"; 
 
-// 4. เรียกใช้ไฟล์ Header (ส่วนหัว + Sidebar)
+// 4. เรียกใช้ไฟล์ Header
 include('includes/header.php'); 
 
-// 5. เตรียมดึงข้อมูลอุปกรณ์จากฐานข้อมูล
+// 5. เตรียมดึงข้อมูลอุปกรณ์
 try {
-    // เตรียมคำสั่ง SQL
     $stmt = $pdo->prepare("SELECT * FROM med_equipment ORDER BY name ASC");
-    // รันคำสั่ง
     $stmt->execute();
-    // ดึงข้อมูลทั้งหมดมาเก็บใน $equipments
     $equipments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 } catch (PDOException $e) {
-    // กรณีดึงข้อมูลไม่สำเร็จ
     echo "เกิดข้อผิดพลาดในการดึงข้อมูล: " . $e->getMessage();
-    $equipments = []; // กำหนดให้เป็นค่าว่าง
+    $equipments = []; 
 }
 ?>
 
@@ -50,7 +44,7 @@ try {
                     <td colspan="5" style="text-align: center;">ยังไม่มีอุปกรณ์ในระบบ</td>
                 </tr>
             <?php else: ?>
-                <?php $i = 1; // ตัวแปรสำหรับนับลำดับ ?>
+                <?php $i = 1; ?>
                 <?php foreach ($equipments as $row): ?>
                     <tr>
                         <td><?php echo $i; ?></td>
@@ -70,14 +64,24 @@ try {
                         <td>
                             <?php if ($row['status'] == 'available'): ?>
                                 <a href="borrow_form.php?id=<?php echo $row['id']; ?>" class="btn btn-borrow">ยืม</a>
+                            
                             <?php elseif ($row['status'] == 'borrowed'): ?>
-                                <a href="return_form.php?id=<?php echo $row['id']; ?>" class="btn btn-return">รับคืน</a>
+                                <?php if ($_SESSION['role'] == 'admin'): ?>
+                                    <a href="return_form.php?id=<?php echo $row['id']; ?>" class="btn btn-return">รับคืน</a>
+                                <?php else: ?>
+                                    <span style="color: #6c757d;">(ถูกยืมอยู่)</span>
+                                <?php endif; ?>
+                                
                             <?php else: // 'maintenance' ?>
-                                <a href="edit_form.php?id=<?php echo $row['id']; ?>" class="btn btn-manage">แก้ไข</a>
+                                <?php if ($_SESSION['role'] == 'admin'): ?>
+                                    <a href="edit_form.php?id=<?php echo $row['id']; ?>" class="btn btn-manage">แก้ไข</a>
+                                <?php else: ?>
+                                    <span style="color: #6c757d;">(ซ่อมบำรุง)</span>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </td>
-                    </tr>
-                <?php $i++; // เพิ่มค่าลำดับ ?>
+                        </tr>
+                <?php $i++; ?>
                 <?php endforeach; ?>
             <?php endif; ?>
 
@@ -86,6 +90,6 @@ try {
 </div>
 
 <?php
-// 8. เรียกใช้ไฟล์ Footer (ส่วนท้าย)
+// 8. เรียกใช้ไฟล์ Footer
 include('includes/footer.php'); 
 ?>
