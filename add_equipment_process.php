@@ -3,55 +3,60 @@
 include('includes/check_session.php');
 require_once('db_connect.php');
 
-// 2. ตรวจสอบสิทธิ์ Admin
+// 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    die("คุณไม่มีสิทธิ์ดำเนินการ <a href='index.php'>กลับหน้าหลัก</a>");
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
 }
+header('Content-Type: application/json');
 
-// 3. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
+// 3. สร้างตัวแปรสำหรับเก็บคำตอบ
+$response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
+
+// 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 4. รับข้อมูลจากฟอร์ม
+    // 5. รับข้อมูลจากฟอร์ม
     $name          = isset($_POST['name']) ? trim($_POST['name']) : '';
-    // ถ้า serial_number ว่าง ให้เก็บเป็น NULL (เพราะใน DB เราตั้งค่าเป็น UNIQUE)
     $serial_number = isset($_POST['serial_number']) ? trim($_POST['serial_number']) : null;
     $description   = isset($_POST['description']) ? trim($_POST['description']) : null;
 
     if (empty($name)) {
-        die("ข้อมูลไม่ครบถ้วน (Name) <a href='index.php'>กลับหน้าหลัก</a>");
+        $response['message'] = 'กรุณากรอกชื่ออุปกรณ์';
+        echo json_encode($response);
+        exit;
     }
-    
-    // ถ้า serial ว่าง ให้เปลี่ยนเป็น NULL
+
     if (empty($serial_number)) $serial_number = null;
     if (empty($description)) $description = null;
 
-    // 5. ดำเนินการ INSERT
+    // 6. ดำเนินการ INSERT
     try {
-        // สถานะ (status) จะเป็น 'available' ตามค่า DEFAULT ที่เราตั้งใน DB
-        $sql = "INSERT INTO med_equipment (name, serial_number, description) 
+        // สถานะ 'available' เป็นค่า DEFAULT
+        $sql = "INSERT INTO med_equipment (name, serial_number, description)
                 VALUES (?, ?, ?)";
-        
+
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$name, $serial_number, $description]);
 
-        // 6. ส่งผู้ใช้กลับไปหน้าหลัก
-        // (เราควรจะเพิ่ม SweetAlert "สำเร็จ" ที่หน้า index.php ทีหลัง)
-        header("Location: index.php?add=success");
-        exit;
+        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
+        $response['status'] = 'success';
+        $response['message'] = 'เพิ่มอุปกรณ์ใหม่สำเร็จ';
 
     } catch (PDOException $e) {
-        // 7. หากเกิดข้อผิดพลาด
-        // Error code '23000' คือการละเมิด Unique constraint (เช่น Serial Number ซ้ำ)
         if ($e->getCode() == '23000') {
-             die("เกิดข้อผิดพลาด: เลขซีเรียล (Serial Number) นี้มีในระบบแล้ว <a href='add_equipment_form.php'>กลับไปแก้ไข</a>");
+             $response['message'] = 'เลขซีเรียล (Serial Number) นี้มีในระบบแล้ว';
         } else {
-            die("เกิดข้อผิดพลาดในการบันทึก: " . $e->getMessage() . " <a href='index.php'>กลับหน้าหลัก</a>");
+             $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
         }
     }
 
 } else {
-    // ถ้าไม่ได้เข้ามาหน้านี้ผ่านการ POST
-    header("Location: index.php");
-    exit;
+    $response['message'] = 'ต้องใช้วิธี POST เท่านั้น';
 }
+
+// 8. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
+echo json_encode($response);
+exit;
 ?>
