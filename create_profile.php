@@ -113,8 +113,14 @@ $default_name = isset($_SESSION['line_name_to_register']) ? htmlspecialchars($_S
                 <input type="text" name="phone_number" id="phone_number">
             </div>
 
-            <button type="button" class="btn-submit" onclick="confirmSaveProfile()">
-                บันทึกและเข้าสู่ระบบ
+            <div class="form-group" style="margin-top: 20px; padding: 10px; background: #f8f8f8; border-radius: 8px; text-align: left;">
+                <input type="checkbox" name="terms_agree" id="terms_agree" value="yes" required style="width: 16px; height: 16px; margin-right: 10px;">
+                <label for="terms_agree" style="font-weight: normal; display: inline;">
+                    ข้าพเจ้ายอมรับ <a href="terms_of_service.php" target="_blank" style="color: var(--color-primary); text-decoration: underline;">ข้อตกลงและเงื่อนไขการใช้งาน</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-loan" id="submitBtn" disabled> บันทึกข้อมูลและเริ่มใช้งาน
             </button>
 
         </form>
@@ -133,6 +139,22 @@ $default_name = isset($_SESSION['line_name_to_register']) ? htmlspecialchars($_S
             document.getElementById('status_other').required = false;
         }
     }
+    document.addEventListener('DOMContentLoaded', function() {
+        const termsCheck = document.getElementById('terms_agree');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // (เริ่มแรกให้ปุ่มกดไม่ได้)
+        submitBtn.disabled = true;
+
+        // (เมื่อมีการติ๊ก)
+        termsCheck.addEventListener('change', function() {
+            if (this.checked) {
+                submitBtn.disabled = false; // (เปิดปุ่ม)
+            } else {
+                submitBtn.disabled = true; // (ปิดปุ่ม)
+            }
+        });
+    });
     function confirmSaveProfile() {
         var form = document.getElementById('profileForm');
         if (!form.checkValidity()) {

@@ -107,13 +107,13 @@ include('includes/header.php');
         <div class="stat-card-info"><p class="title">พร้อมใช้งาน</p><p class="value"><?php echo $count_available; ?></p></div>
         <div class="stat-card-icon icon-available"><i class="fas fa-check-circle"></i></div>
     </div>
-    <div class="stat-card kpi-overdue">
-        <div class="stat-card-info"><p class="title">เกินกำหนดคืน</p><p class="value"><?php echo $count_overdue; ?></p></div>
-        <div class="stat-card-icon icon-overdue"><i class="fas fa-calendar-times"></i></div>
-    </div>
     <div class="stat-card kpi-maintenance">
         <div class="stat-card-info"><p class="title">ซ่อมบำรุง</p><p class="value"><?php echo $count_maintenance; ?></p></div>
         <div class="stat-card-icon icon-maintenance"><i class="fas fa-tools"></i></div>
+    </div>
+    <div class="stat-card kpi-overdue">
+        <div class="stat-card-info"><p class="title">เกินกำหนดคืน</p><p class="value"><?php echo $count_overdue; ?></p></div>
+        <div class="stat-card-icon icon-overdue"><i class="fas fa-calendar-times"></i></div>
     </div>
 </div>
 

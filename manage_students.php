@@ -105,23 +105,20 @@ include('includes/header.php');
         <tbody>
             <?php if (empty($students)): ?>
                 <tr>
-                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td>
+                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> 
                 </tr>
             <?php else: ?>
                 <?php foreach ($students as $student): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($student['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td>
+                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> 
                         <td>
-                            <?php
-                            echo htmlspecialchars($student['status']);
-                            if ($student['status'] == 'other') {
-                                echo ' (' . htmlspecialchars($student['status_other']) . ')';
-                            }
+                            <?php 
+                                echo htmlspecialchars($student['status']); 
+                                if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
                             ?>
                         </td>
                         <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
-
                         <td>
                             <?php if ($student['line_user_id']): ?>
                                 <span style="color: #00B900; font-weight: bold;">LINE</span>
@@ -129,33 +126,38 @@ include('includes/header.php');
                                 <span style="color: #6c757d;">Admin</span>
                             <?php endif; ?>
                         </td>
+                        
                         <td class="action-buttons">
+                            
                             <button type="button"
-                                class="btn btn-manage"
-                                onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">แก้ไข</button>
-
+                                    class="btn btn-manage"
+                                    onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">แก้ไข</button>
+                            
                             <?php if ($student['linked_user_id']): ?>
-                                <button type="button"
-                                    class="btn btn-danger"
-                                    onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
+                                <button type="button" 
+                                        class="btn btn-danger" 
+                                        onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
                                     <i class="fas fa-user-minus"></i> ลดสิทธิ์
                                 </button>
+                            
                             <?php else: ?>
-                                <?php if (empty($student['line_user_id'])): ?>
-                                    <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
-                                        class="btn btn-danger"
-                                        onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
-                                <?php else: ?>
-                                    <button type="button"
-                                        class="btn"
-                                        style="background-color: #ffc107; color: #333;"
-                                        onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
+                                <?php if (!empty($student['line_user_id'])): ?>
+                                    <button type="button" 
+                                            class="btn" 
+                                            style="background-color: #ffc107; color: #333;" 
+                                            onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
                                         <i class="fas fa-user-shield"></i> เลื่อนขั้น
                                     </button>
                                 <?php endif; ?>
+                                
+                                <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
+                                   class="btn btn-danger"
+                                   style="margin-left: 5px;" 
+                                   onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
+
                             <?php endif; ?>
                         </td>
-                    </tr>
+                        </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
         </tbody>
