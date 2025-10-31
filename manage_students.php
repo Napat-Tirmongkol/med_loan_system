@@ -46,15 +46,20 @@ try {
 $message = '';
 $message_type = '';
 if (isset($_GET['add']) && $_GET['add'] == 'success') {
-    $message = 'เพิ่มผู้ใช้งานใหม่สำเร็จ!'; $message_type = 'success';
+    $message = 'เพิ่มผู้ใช้งานใหม่สำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['edit']) && $_GET['edit'] == 'success') {
-    $message = 'แก้ไขข้อมูลผู้ใช้งานสำเร็จ!'; $message_type = 'success';
+    $message = 'แก้ไขข้อมูลผู้ใช้งานสำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['delete']) && $_GET['delete'] == 'success') {
-    $message = 'ลบข้อมูลผู้ใช้งานสำเร็จ!'; $message_type = 'success';
+    $message = 'ลบข้อมูลผู้ใช้งานสำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['promote']) && $_GET['promote'] == 'success') {
-    $message = 'เลื่อนขั้นผู้ใช้งานเป็นพนักงานสำเร็จ!'; $message_type = 'success';
+    $message = 'เลื่อนขั้นผู้ใช้งานเป็นพนักงานสำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['staff_op']) && $_GET['staff_op'] == 'success') {
-    $message = 'ดำเนินการกับบัญชีพนักงานสำเร็จ!'; $message_type = 'success';
+    $message = 'ดำเนินการกับบัญชีพนักงานสำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['error'])) {
     $message_type = 'error';
     if ($_GET['error'] == 'fk_constraint') {
@@ -90,7 +95,8 @@ include('includes/header.php');
         <thead>
             <tr>
                 <th>ชื่อ-สกุล</th>
-                <th>รหัสผู้ใช้งาน/บุคลากร</th> <th>สถานะภาพ</th>
+                <th>รหัสผู้ใช้งาน/บุคลากร</th>
+                <th>สถานะภาพ</th>
                 <th>เบอร์โทร</th>
                 <th>ลงทะเบียนโดย</th>
                 <th>จัดการ</th>
@@ -99,15 +105,19 @@ include('includes/header.php');
         <tbody>
             <?php if (empty($students)): ?>
                 <tr>
-                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> </tr>
+                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td>
+                </tr>
             <?php else: ?>
                 <?php foreach ($students as $student): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($student['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> <td>
-                            <?php 
-                                echo htmlspecialchars($student['status']); 
-                                if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
+                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td>
+                        <td>
+                            <?php
+                            echo htmlspecialchars($student['status']);
+                            if ($student['status'] == 'other') {
+                                echo ' (' . htmlspecialchars($student['status_other']) . ')';
+                            }
                             ?>
                         </td>
                         <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
@@ -121,25 +131,25 @@ include('includes/header.php');
                         </td>
                         <td class="action-buttons">
                             <button type="button"
-                                    class="btn btn-manage"
-                                    onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">แก้ไข</button>
-                            
+                                class="btn btn-manage"
+                                onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">แก้ไข</button>
+
                             <?php if ($student['linked_user_id']): ?>
-                                <button type="button" 
-                                        class="btn btn-danger" 
-                                        onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
+                                <button type="button"
+                                    class="btn btn-danger"
+                                    onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
                                     <i class="fas fa-user-minus"></i> ลดสิทธิ์
                                 </button>
                             <?php else: ?>
                                 <?php if (empty($student['line_user_id'])): ?>
                                     <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
-                                       class="btn btn-danger"
-                                       onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
+                                        class="btn btn-danger"
+                                        onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
                                 <?php else: ?>
-                                    <button type="button" 
-                                            class="btn" 
-                                            style="background-color: #ffc107; color: #333;" 
-                                            onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
+                                    <button type="button"
+                                        class="btn"
+                                        style="background-color: #ffc107; color: #333;"
+                                        onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
                                         <i class="fas fa-user-shield"></i> เลื่อนขั้น
                                     </button>
                                 <?php endif; ?>
@@ -203,20 +213,20 @@ include('includes/header.php');
                         </td>
                         <td class="action-buttons">
                             <button type="button"
-                                    class="btn btn-manage"
-                                    onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">แก้ไข</button>
-                            
+                                class="btn btn-manage"
+                                onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">แก้ไข</button>
+
                             <?php if ($staff['id'] != $_SESSION['user_id']): ?>
                                 <?php if ($staff['linked_line_user_id']): ?>
-                                    <button type="button" 
-                                            class="btn btn-danger" 
-                                            onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                    <button type="button"
+                                        class="btn btn-danger"
+                                        onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
                                         <i class="fas fa-user-minus"></i> ลดสิทธิ์
                                     </button>
                                 <?php else: ?>
-                                    <button type="button" 
-                                            class="btn btn-danger" 
-                                            onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                    <button type="button"
+                                        class="btn btn-danger"
+                                        onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
                                         <i class="fas fa-trash"></i> ลบบัญชี
                                     </button>
                                 <?php endif; ?>
@@ -232,29 +242,30 @@ include('includes/header.php');
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// (JS: "student" -> "user")
-function confirmDeleteStudent(event, id) {
-    event.preventDefault();
-    const url = event.currentTarget.href;
-    Swal.fire({
-        title: "คุณแน่ใจหรือไม่?",
-        text: "คุณกำลังจะลบผู้ใช้งานนี้ (เฉพาะที่ Admin เพิ่มเอง)",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "ใช่, ลบเลย",
-        cancelButtonText: "ยกเลิก"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url;
-        }
-    });
-}
-function openAddStudentPopup() {
-    Swal.fire({
-        title: '➕ เพิ่มผู้ใช้งาน (โดย Admin)',
-        html: `
+    // (JS: "student" -> "user")
+    function confirmDeleteStudent(event, id) {
+        event.preventDefault();
+        const url = event.currentTarget.href;
+        Swal.fire({
+            title: "คุณแน่ใจหรือไม่?",
+            text: "คุณกำลังจะลบผู้ใช้งานนี้ (เฉพาะที่ Admin เพิ่มเอง)",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+
+    function openAddStudentPopup() {
+        Swal.fire({
+            title: '➕ เพิ่มผู้ใช้งาน (โดย Admin)',
+            html: `
             <form id="swalAddForm" style="text-align: left; margin-top: 20px;">
                 <p>ผู้ใช้งานที่เพิ่มโดย Admin จะไม่มี LINE ID เชื่อมโยง</p>
                 <div style="margin-bottom: 15px;">
@@ -266,93 +277,108 @@ function openAddStudentPopup() {
                     <input type="text" name="phone_number" id="swal_phone_number" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                 </div>
                 </form>`,
-        showCancelButton: true,
-        confirmButtonText: 'บันทึก',
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: 'var(--color-success, #28a745)',
-        focusConfirm: false,
-        preConfirm: () => {
-            const form = document.getElementById('swalAddForm');
-            const fullName = form.querySelector('#swal_full_name').value;
-            if (!fullName) {
-                Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล ผู้ใช้งาน');
-                return false;
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: 'var(--color-success, #28a745)',
+            focusConfirm: false,
+            preConfirm: () => {
+                const form = document.getElementById('swalAddForm');
+                const fullName = form.querySelector('#swal_full_name').value;
+                if (!fullName) {
+                    Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล ผู้ใช้งาน');
+                    return false;
+                }
+                return fetch('add_student_process.php', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                    });
             }
-            return fetch('add_student_process.php', { method: 'POST', body: new FormData(form) })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== 'success') throw new Error(data.message);
-                    return data;
-                })
-                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('บันทึกสำเร็จ!', 'เพิ่มผู้ใช้งานใหม่เรียบร้อยแล้ว', 'success').then(() => location.href = 'manage_students.php?add=success');
-        }
-    });
-}
-function openEditStudentPopup(studentId) {
-    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
-    fetch(`get_student_data.php?id=${studentId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== 'success') throw new Error(data.message);
-            const student = data.student;
-            const formHtml = `
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('บันทึกสำเร็จ!', 'เพิ่มผู้ใช้งานใหม่เรียบร้อยแล้ว', 'success').then(() => location.href = 'manage_students.php?add=success');
+            }
+        });
+    }
+
+    function openEditStudentPopup(studentId) {
+    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
+    fetch(`get_student_data.php?id=${studentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') throw new Error(data.message);
+            const student = data.student;
+            
+            // --- ⬇️ นี่คือส่วนที่แก้ไข ⬇️ ---
+            const formHtml = `
                 <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
                     <input type="hidden" name="student_id" value="${student.id}">
                     <div style="margin-bottom: 15px;">
                         <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล: <span style="color:red;">*</span></label>
                         <input type="text" name="full_name" id="swal_edit_full_name" value="${student.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
-                    
-                                        <div style="margin-bottom: 15px;">
-                        <label for="swal_edit_student_id" style="font-weight: bold; display: block; margin-bottom: 5px;">รหัสผู้ใช้งาน/บุคลากร:</label>
-                        <input type="text" name="student_personnel_id" id="swal_edit_student_id" value="${student.student_personnel_id || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
-                                        <div style="margin-bottom: 15px;">
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_student_id" style="font-weight: bold; display: block; margin-bottom: 5px;">รหัสผู้ใช้งาน/บุคลากร:</label>
+                        <input type="text" name="student_personnel_id" id="swal_edit_student_id" value="${student.student_personnel_id || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                                        <div style="margin-bottom: 15px;">
                         <label for="swal_edit_phone_number" style="font-weight: bold; display: block; margin-bottom: 5px;">เบอร์โทร:</label>
                         <input type="text" name="phone_number" id="swal_edit_phone_number" value="${student.phone_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
-                    </form>`;
-            Swal.fire({
-                title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
-                html: formHtml,
-                showCancelButton: true,
-                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: 'var(--color-primary, #0B6623)',
-                focusConfirm: false,
-                preConfirm: () => {
-                    const form = document.getElementById('swalEditStudentForm');
-                    const fullName = form.querySelector('#swal_edit_full_name').value;
-                    if (!fullName) {
-                        Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล');
-                        return false;
+                </form>`;
+            // --- ⬆️ จบส่วนที่แก้ไข ⬆️ ---
+                Swal.fire({
+                    title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
+                    html: formHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: 'var(--color-primary, #0B6623)',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const form = document.getElementById('swalEditStudentForm');
+                        const fullName = form.querySelector('#swal_edit_full_name').value;
+                        if (!fullName) {
+                            Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล');
+                            return false;
+                        }
+                        return fetch('edit_student_process.php', {
+                                method: 'POST',
+                                body: new FormData(form)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'success') throw new Error(data.message);
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                            });
                     }
-                    return fetch('edit_student_process.php', { method: 'POST', body: new FormData(form) })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status !== 'success') throw new Error(data.message);
-                            return data;
-                        })
-                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
-                }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
+                    }
+                });
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
             });
-        })
-        .catch(error => {
-            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
-        });
-}
-function openPromotePopup(studentId, studentName, lineId) {
-    Swal.fire({
-        title: 'เลื่อนขั้นผู้ใช้งาน',
-        html: `
+    }
+
+    function openPromotePopup(studentId, studentName, lineId) {
+        Swal.fire({
+            title: 'เลื่อนขั้นผู้ใช้งาน',
+            html: `
             <p style="text-align: left;">คุณกำลังจะเลื่อนขั้น <strong>${studentName}</strong> (ที่มี LINE ID) ให้เป็น "พนักงาน"</p>
             <p style="text-align: left;">กรุณาสร้างบัญชีสำหรับ Login (เผื่อกรณีที่ไม่ได้เข้าผ่าน LINE):</p>
             
@@ -376,103 +402,111 @@ function openPromotePopup(studentId, studentName, lineId) {
                     </select>
                 </div>
             </form>`,
-        showCancelButton: true,
-        confirmButtonText: 'ยืนยันการเลื่อนขั้น',
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: 'var(--color-warning, #ffc107)',
-        focusConfirm: false,
-        preConfirm: () => {
-            const form = document.getElementById('swalPromoteForm');
-            const username = form.querySelector('#swal_username').value;
-            const password = form.querySelector('#swal_password').value;
-            if (!username || !password) {
-                Swal.showValidationMessage('กรุณากรอก Username และ Password');
-                return false;
+            showCancelButton: true,
+            confirmButtonText: 'ยืนยันการเลื่อนขั้น',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: 'var(--color-warning, #ffc107)',
+            focusConfirm: false,
+            preConfirm: () => {
+                const form = document.getElementById('swalPromoteForm');
+                const username = form.querySelector('#swal_username').value;
+                const password = form.querySelector('#swal_password').value;
+                if (!username || !password) {
+                    Swal.showValidationMessage('กรุณากรอก Username และ Password');
+                    return false;
+                }
+                return fetch('promote_student_process.php', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                    });
             }
-            return fetch('promote_student_process.php', { method: 'POST', body: new FormData(form) })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== 'success') throw new Error(data.message);
-                    return data;
-                })
-                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('เลื่อนขั้นสำเร็จ!', 'ผู้ใช้งานนี้กลายเป็นพนักงานแล้ว', 'success').then(() => location.href = 'manage_students.php?promote=success');
-        }
-    });
-}
-function confirmDemote(userId, staffName) {
-    Swal.fire({
-        title: `คุณแน่ใจหรือไม่?`,
-        text: `คุณกำลังจะลดสิทธิ์ ${staffName} กลับไปเป็น "ผู้ใช้งาน" บัญชีพนักงานจะถูกลบ (แต่ยัง Login LINE ได้)`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "ใช่, ลดสิทธิ์เลย",
-        cancelButtonText: "ยกเลิก"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = new FormData();
-            formData.append('user_id_to_demote', userId); 
-            fetch('demote_staff_process.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    Swal.fire('ลดสิทธิ์สำเร็จ!', data.message, 'success')
-                    .then(() => location.href = 'manage_students.php?staff_op=success');
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
-                }
-            })
-            .catch(error => {
-                Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
-            });
-        }
-    });
-}
-function confirmDeleteStaff(userId, staffName) {
-    Swal.fire({
-        title: `คุณแน่ใจหรือไม่?`,
-        text: `คุณกำลังจะลบบัญชีพนักงาน [${staffName}] ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อไม่มีประวัติการอนุมัติค้างอยู่)`,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "ใช่, ลบบัญชี",
-        cancelButtonText: "ยกเลิก"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = new FormData();
-            formData.append('user_id_to_demote', userId); 
-            fetch('demote_staff_process.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    Swal.fire('ลบสำเร็จ!', data.message, 'success')
-                    .then(() => location.href = 'manage_students.php?staff_op=success');
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
-                }
-            })
-            .catch(error => {
-                Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
-            });
-        }
-    });
-}
-function openAddStaffPopup() {
-    Swal.fire({
-        title: '➕ เพิ่มบัญชีพนักงานใหม่',
-        html: `
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('เลื่อนขั้นสำเร็จ!', 'ผู้ใช้งานนี้กลายเป็นพนักงานแล้ว', 'success').then(() => location.href = 'manage_students.php?promote=success');
+            }
+        });
+    }
+
+    function confirmDemote(userId, staffName) {
+        Swal.fire({
+            title: `คุณแน่ใจหรือไม่?`,
+            text: `คุณกำลังจะลดสิทธิ์ ${staffName} กลับไปเป็น "ผู้ใช้งาน" บัญชีพนักงานจะถูกลบ (แต่ยัง Login LINE ได้)`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลดสิทธิ์เลย",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('user_id_to_demote', userId);
+                fetch('demote_staff_process.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('ลดสิทธิ์สำเร็จ!', data.message, 'success')
+                                .then(() => location.href = 'manage_students.php?staff_op=success');
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                    });
+            }
+        });
+    }
+
+    function confirmDeleteStaff(userId, staffName) {
+        Swal.fire({
+            title: `คุณแน่ใจหรือไม่?`,
+            text: `คุณกำลังจะลบบัญชีพนักงาน [${staffName}] ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อไม่มีประวัติการอนุมัติค้างอยู่)`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลบบัญชี",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('user_id_to_demote', userId);
+                fetch('demote_staff_process.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('ลบสำเร็จ!', data.message, 'success')
+                                .then(() => location.href = 'manage_students.php?staff_op=success');
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                    });
+            }
+        });
+    }
+
+    function openAddStaffPopup() {
+        Swal.fire({
+            title: '➕ เพิ่มบัญชีพนักงานใหม่',
+            html: `
             <p style="text-align: left;">บัญชีนี้จะใช้สำหรับ Login ในหน้า Admin/Employee (จะไม่ถูกผูกกับ LINE)</p>
             <form id="swalAddStaffForm" style="text-align: left; margin-top: 20px;">
                 <div style="margin-bottom: 15px;">
@@ -495,45 +529,56 @@ function openAddStaffPopup() {
                     </select>
                 </div>
             </form>`,
-        showCancelButton: true,
-        confirmButtonText: 'บันทึก',
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: 'var(--color-success, #28a745)',
-        focusConfirm: false,
-        preConfirm: () => {
-            const form = document.getElementById('swalAddStaffForm');
-            if (!form.checkValidity()) {
-                Swal.showValidationMessage('กรุณากรอกข้อมูล * ให้ครบถ้วน');
-                return false;
+            showCancelButton: true,
+            confirmButtonText: 'บันทึก',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: 'var(--color-success, #28a745)',
+            focusConfirm: false,
+            preConfirm: () => {
+                const form = document.getElementById('swalAddStaffForm');
+                if (!form.checkValidity()) {
+                    Swal.showValidationMessage('กรุณากรอกข้อมูล * ให้ครบถ้วน');
+                    return false;
+                }
+                return fetch('add_staff_process.php', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                    });
             }
-            return fetch('add_staff_process.php', { method: 'POST', body: new FormData(form) })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status !== 'success') throw new Error(data.message);
-                    return data;
-                })
-                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('บันทึกสำเร็จ!', 'เพิ่มบัญชีพนักงานใหม่เรียบร้อย', 'success').then(() => location.href = 'manage_students.php?staff_op=success');
-        }
-    });
-}
-function openEditStaffPopup(userId) {
-    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
-    
-    fetch(`get_staff_data.php?id=${userId}`) 
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== 'success') throw new Error(data.message);
-            const staff = data.staff;
-            
-            const is_linked = staff.linked_line_user_id ? true : false;
-            const disabled_attr = is_linked ? 'disabled' : '';
-            const linked_warning = is_linked ? '<p style="color: #00B900; text-align: left;">(บัญชีนี้ผูกกับ LINE จึงไม่สามารถแก้ไขชื่อและสิทธิ์ได้จากหน้านี้)</p>' : '';
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('บันทึกสำเร็จ!', 'เพิ่มบัญชีพนักงานใหม่เรียบร้อย', 'success').then(() => location.href = 'manage_students.php?staff_op=success');
+            }
+        });
+    }
 
-            const formHtml = `
+    function openEditStaffPopup(userId) {
+        Swal.fire({
+            title: 'กำลังโหลดข้อมูล...',
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch(`get_staff_data.php?id=${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') throw new Error(data.message);
+                const staff = data.staff;
+
+                const is_linked = staff.linked_line_user_id ? true : false;
+                const disabled_attr = is_linked ? 'disabled' : '';
+                const linked_warning = is_linked ? '<p style="color: #00B900; text-align: left;">(บัญชีนี้ผูกกับ LINE จึงไม่สามารถแก้ไขชื่อและสิทธิ์ได้จากหน้านี้)</p>' : '';
+
+                const formHtml = `
                 <form id="swalEditStaffForm" style="text-align: left; margin-top: 20px;">
                     <input type="hidden" name="user_id" value="${staff.id}">
                     ${linked_warning}
@@ -558,39 +603,44 @@ function openEditStaffPopup(userId) {
                         <input type="text" name="new_password" id="swal_e_password" placeholder="กรอกรหัสผ่านใหม่" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
                 </form>`;
-                
-            Swal.fire({
-                title: '🔧 แก้ไขบัญชีพนักงาน',
-                html: formHtml,
-                showCancelButton: true,
-                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: 'var(--color-primary, #0B6623)',
-                focusConfirm: false,
-                preConfirm: () => {
-                    const form = document.getElementById('swalEditStaffForm');
-                    if (!form.checkValidity()) {
-                        Swal.showValidationMessage('กรุณากรอกข้อมูล * ให้ครบถ้วน');
-                        return false;
+
+                Swal.fire({
+                    title: '🔧 แก้ไขบัญชีพนักงาน',
+                    html: formHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: 'var(--color-primary, #0B6623)',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const form = document.getElementById('swalEditStaffForm');
+                        if (!form.checkValidity()) {
+                            Swal.showValidationMessage('กรุณากรอกข้อมูล * ให้ครบถ้วน');
+                            return false;
+                        }
+                        return fetch('edit_staff_process.php', {
+                                method: 'POST',
+                                body: new FormData(form)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'success') throw new Error(data.message);
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                            });
                     }
-                    return fetch('edit_staff_process.php', { method: 'POST', body: new FormData(form) })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status !== 'success') throw new Error(data.message);
-                            return data;
-                        })
-                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลบัญชีเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?staff_op=success');
-                }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลบัญชีเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?staff_op=success');
+                    }
+                });
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
             });
-        })
-        .catch(error => {
-            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
-        });
-}
+    }
 </script>
 
 <?php
