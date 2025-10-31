@@ -25,6 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_id   = isset($_POST['student_id']) ? (int)$_POST['student_id'] : 0;
     $full_name    = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
     $phone_number = isset($_POST['phone_number']) ? trim($_POST['phone_number']) : null;
+    $student_personnel_id = isset($_POST['student_personnel_id']) ? trim($_POST['student_personnel_id']) : null; // ◀️ เพิ่ม 1
 
     if ($student_id == 0 || empty($full_name)) {
         $response['message'] = 'ข้อมูลไม่ครบถ้วน (ID หรือ ชื่อ-สกุล)';
@@ -33,15 +34,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     if (empty($phone_number)) $phone_number = null;
+    if (empty($student_personnel_id)) $student_personnel_id = null; // ◀️ เพิ่ม 2
 
     // 6. (SQL ใหม่) ดำเนินการ UPDATE ตาราง med_students
     try {
         $sql = "UPDATE med_students 
-                SET full_name = ?, phone_number = ?
-                WHERE id = ?";
+                SET full_name = ?, phone_number = ?, student_personnel_id = ?
+                WHERE id = ?"; // ◀️ เพิ่ม 3
         
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$full_name, $phone_number, $student_id]);
+        $stmt->execute([$full_name, $phone_number, $student_personnel_id, $student_id]); // ◀️ เพิ่ม 4
 
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';

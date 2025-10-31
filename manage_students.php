@@ -90,7 +90,7 @@ include('includes/header.php');
         <thead>
             <tr>
                 <th>ชื่อ-สกุล</th>
-                <th>สถานะภาพ</th>
+                <th>รหัสผู้ใช้งาน/บุคลากร</th> <th>สถานะภาพ</th>
                 <th>เบอร์โทร</th>
                 <th>ลงทะเบียนโดย</th>
                 <th>จัดการ</th>
@@ -99,19 +99,19 @@ include('includes/header.php');
         <tbody>
             <?php if (empty($students)): ?>
                 <tr>
-                    <td colspan="5" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td>
-                </tr>
+                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> </tr>
             <?php else: ?>
                 <?php foreach ($students as $student): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($student['full_name']); ?></td>
-                        <td>
+                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> <td>
                             <?php 
                                 echo htmlspecialchars($student['status']); 
                                 if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
                             ?>
                         </td>
                         <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
+
                         <td>
                             <?php if ($student['line_user_id']): ?>
                                 <span style="color: #00B900; font-weight: bold;">LINE</span>
@@ -300,17 +300,22 @@ function openEditStudentPopup(studentId) {
             if (data.status !== 'success') throw new Error(data.message);
             const student = data.student;
             const formHtml = `
-                <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="student_id" value="${student.id}">
-                    <div style="margin-bottom: 15px;">
-                        <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล: <span style="color:red;">*</span></label>
-                        <input type="text" name="full_name" id="swal_edit_full_name" value="${student.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label for="swal_edit_phone_number" style="font-weight: bold; display: block; margin-bottom: 5px;">เบอร์โทร:</label>
-                        <input type="text" name="phone_number" id="swal_edit_phone_number" value="${student.phone_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
-                    </form>`;
+                <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
+                    <input type="hidden" name="student_id" value="${student.id}">
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล: <span style="color:red;">*</span></label>
+                        <input type="text" name="full_name" id="swal_edit_full_name" value="${student.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    
+                                        <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_student_id" style="font-weight: bold; display: block; margin-bottom: 5px;">รหัสผู้ใช้งาน/บุคลากร:</label>
+                        <input type="text" name="student_personnel_id" id="swal_edit_student_id" value="${student.student_personnel_id || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                                        <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_phone_number" style="font-weight: bold; display: block; margin-bottom: 5px;">เบอร์โทร:</label>
+                        <input type="text" name="phone_number" id="swal_edit_phone_number" value="${student.phone_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    </form>`;
             Swal.fire({
                 title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
                 html: formHtml,
