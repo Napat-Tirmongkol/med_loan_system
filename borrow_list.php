@@ -30,49 +30,63 @@ $active_page = 'borrow'; // ◀️ (สำคัญ) บอก Footer ว่า�
 include('includes/student_header.php');
 ?>
 
-<div class="main-container">
+<div class="equipment-grid">
+            
+            <?php if (empty($equipments)): ?>
+                <p style="grid-column: 1 / -1; text-align: center;">ไม่มีอุปกรณ์ที่ว่างในขณะนี้</p>
+            <?php else: ?>
+                <?php foreach ($equipments as $row): ?>
+                    
+                    <div class="equipment-card">
+                        
+                        <?php
+                            // --- ⬇️ นี่คือตรรกะใหม่ ⬇️ ---
+                            // 1. ตรวจสอบว่ามี image_url หรือไม่
+                            if (!empty($row['image_url'])):
+                                // ◀️ ถ้ามี: ให้แสดงแท็ก <img>
+                                $image_to_show = $row['image_url'];
+                        ?>
+                                <img src="<?php echo htmlspecialchars($image_to_show); ?>" 
+                                     alt="<?php echo htmlspecialchars($row['name']); ?>" 
+                                     class="equipment-card-image"
+                                     onerror="this.parentElement.innerHTML = '<div class=\'equipment-card-image-placeholder\'><i class=\'fas fa-image-slash\'></i></div>';"> 
+                                     <?php
+                            else:
+                                // ◀️ ถ้าไม่มี: ให้แสดง Placeholder ที่เป็นไอคอน (ไม่เกิด 404)
+                        ?>
+                                <div class="equipment-card-image-placeholder">
+                                    <i class="fas fa-camera"></i> </div>
+                        <?php
+                            endif;
+                            // --- ⬆️ จบตรรกะรูปภาพ ⬆️ ---
+                        ?>
 
-    <div class="section-card">
-        <h2 class="section-title">อุปกรณ์ที่พร้อมให้ยืม</h2>
-        <p class="text-muted">เลือกอุปกรณ์ที่คุณต้องการส่งคำขอยืม</p>
-        
-        <?php if (isset($equip_error)) echo "<p style='color: red;'>$equip_error</p>"; ?>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>อุปกรณ์</th>
-                    <th>เลขซีเรียล</th>
-                    <th>รายละเอียด</th>
-                    <th>จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($equipments)): ?>
-                    <tr><td colspan="4" style="text-align: center;">ไม่มีอุปกรณ์ที่ว่างในขณะนี้</td></tr>
-                <?php else: ?>
-                    <?php foreach ($equipments as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></td>
-                            <td style="white-space: pre-wrap; min-width: 200px;"><?php echo htmlspecialchars($row['description'] ?? '-'); ?></td>
-                            <td>
-                                <button type="button" 
-                                        class="btn-loan" 
-                                        onclick="openRequestPopup(<?php echo $row['id']; ?>)">ส่งคำขอยืม</button>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+                        <div class="equipment-card-content">
+                            <h3 class="equipment-card-title"><?php echo htmlspecialchars($row['name']); ?></h3>
+                            <p class="equipment-card-desc"><?php echo htmlspecialchars($row['description'] ?? 'ไม่มีรายละเอียด'); ?></p>
+                        </div>
+                        
+                        <div class="equipment-card-footer">
+                            <span class="equipment-card-price" style="font-weight: bold; color: var(--color-primary);">
+                                <?php echo htmlspecialchars($row['serial_number'] ?? 'N/A'); ?>
+                            </span>
 
-</div> 
+                            <button type="button" 
+                                    class="btn-loan" 
+                                    title="ส่งคำขอยืม"
+                                    onclick="openRequestPopup(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars(addslashes($row['name'])); ?>')">+</button>
+                        </div>
+
+                    </div>
+
+                <?php endforeach; ?>
+            <?php endif; ?>
+
+        </div>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function openRequestPopup(equipmentId) {
+function openRequestPopup(equipmentId, equipmentName) {
     Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
         text: 'กรุณารอสักครู่',
@@ -116,7 +130,7 @@ function openRequestPopup(equipmentId) {
                 </form>`;
 
             Swal.fire({
-                title: '📝 ส่งคำขอยืมอุปกรณ์',
+                title: `📝 ส่งคำขอยืม: ${equipmentName}`,
                 html: formHtml,
                 width: '600px',
                 showCancelButton: true,

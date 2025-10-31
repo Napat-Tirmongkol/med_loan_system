@@ -40,10 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $sql = "UPDATE med_students 
                 SET full_name = ?, phone_number = ?, student_personnel_id = ?
-                WHERE id = ?"; // ◀️ เพิ่ม 3
+                WHERE id = ?"; // ◀️ เพิ่ม 3 (เพิ่ม student_personnel_id = ?)
         
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$full_name, $phone_number, $student_personnel_id, $student_id]); // ◀️ เพิ่ม 4
+        $stmt->execute([$full_name, $phone_number, $student_personnel_id, $student_id]); // ◀️ เพิ่ม 4 (เพิ่มตัวแปร)
+
+        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
 
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';

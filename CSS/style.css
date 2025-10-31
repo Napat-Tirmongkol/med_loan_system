@@ -537,3 +537,109 @@ body {
 .footer-nav a:hover {
     background-color: var(--color-page-bg, #f5f6fa);
 }
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Card Layout (borrow_list.php)
+ * ========================================= */
+
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 คอลัมน์ */
+    gap: 1rem; /* ระยะห่างระหว่างการ์ด */
+}
+
+.equipment-card {
+    background: var(--color-content-bg, #fff);
+    border-radius: var(--border-radius-main, 12px);
+    box-shadow: var(--box-shadow-main, 0 2px 8px rgba(0,0,0,0.05));
+    overflow: hidden; /* สำหรับรูปภาพ */
+    display: flex;
+    flex-direction: column;
+}
+
+.equipment-card-image {
+    width: 100%;
+    height: 150px; /* กำหนดความสูงของรูป */
+    object-fit: cover; /* ให้รูปเต็มกรอบ */
+    background-color: #f0f0f0; /* สี placeholder */
+    border-bottom: 1px solid var(--border-color, #eee);
+}
+
+.equipment-card-content {
+    padding: 1rem;
+    flex-grow: 1; /* ให้เนื้อหายืดเต็ม */
+}
+
+.equipment-card-title {
+    font-weight: bold;
+    font-size: 1rem;
+    color: var(--color-text-dark, #2d3748);
+    margin: 0 0 0.5rem 0;
+    /* (ป้องกันชื่อยาว 2 บรรทัด) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.4rem; /* (1rem * 1.2 line-height * 2 lines) */
+}
+
+.equipment-card-desc {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6c757d);
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.7rem; /* (0.9rem * 1.5 line-height * 2 lines) */
+}
+
+.equipment-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem 1rem 1rem;
+}
+
+/* ปรับแต่งปุ่ม .btn-loan ที่มีอยู่ ให้เป็นวงกลม */
+.equipment-card .btn-loan {
+    border-radius: 50%; /* ◀️ ทำให้เป็นวงกลม */
+    width: 40px;
+    height: 40px;
+    padding: 0; /* ◀️ ลบ padding เดิม */
+    font-size: 1.5rem; /* ◀️ ปรับขนาด + */
+    font-weight: 300;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Responsive: ถ้าจอมือถือเล็กมาก ให้เหลือ 1 คอลัมน์ */
+@media (max-width: 480px) {
+    .equipment-grid {
+        grid-template-columns: 1fr; /* 1 คอลัมน์ */
+    }
+    .equipment-card-image {
+        height: 180px; /* อาจจะสูงขึ้นเล็กน้อยใน 1 คอลัมน์ */
+    }
+}
+
+/* (CSS ใหม่) สำหรับ Placeholder แบบไม่ใช้รูปภาพ */
+.equipment-card-image-placeholder {
+    width: 100%;
+    height: 150px; 
+    background-color: #f0f0f0; /* สีพื้นหลังเทาอ่อน */
+    border-bottom: 1px solid var(--border-color, #eee);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #cccccc; /* สีไอคอนเทาจางๆ */
+    font-size: 3rem; /* ขนาดไอคอนกล้อง */
+}
+
+/* (เผื่อกรณีรูปภาพใน DB ลิงก์เสีย) */
+.equipment-card-image[src=""] {
+    display: none; /* ซ่อนแท็ก img ที่ไม่มี src */
+}
