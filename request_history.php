@@ -1,5 +1,5 @@
 <?php
-// request_history.php (หน้าประวัติคำขอ)
+// request_history.php (หน้าประวัติคำขอ - Layout ใหม่)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 // (⚠️ โค้ดสำหรับ Development Mode ⚠️)
@@ -39,49 +39,70 @@ include('includes/student_header.php');
 
 <div class="main-container">
 
-    <div class="section-card">
+    <div class="section-card" style="background: none; box-shadow: none; padding: 0;">
         <h2 class="section-title">ประวัติคำขอที่ผ่านมา</h2>
+        <p class="text-muted">รายการคำขอที่คุณเคยส่ง (รอดำเนินการ, คืนแล้ว, ถูกปฏิเสธ)</p>
 
         <?php if (isset($history_error)) echo "<p style='color: red;'>" . htmlspecialchars($history_error) . "</p>"; ?>
         
-        <table>
-            <thead>
-                <tr>
-                    <th>อุปกรณ์</th>
-                    <th>วันที่ส่งคำขอ</th>
-                    <th>วันที่กำหนดคืน</th>
-                    <th>สถานะคำขอ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($history)): ?>
-                    <tr>
-                        <td colspan="4" style="text-align: center;">คุณยังไม่มีประวัติการยืม</td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($history as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['equipment_name']); ?></td>
-                            <td><?php echo date('d/m/Y H:i', strtotime($row['borrow_date'])); ?></td>
-                            <td><?php echo $row['due_date'] ? date('d/m/Y', strtotime($row['due_date'])) : '-'; ?></td>
-                            <td>
-                                <?php if ($row['status'] == 'returned'): ?>
-                                    <span class="status-badge green">คืนแล้ว</span>
-                                <?php elseif ($row['approval_status'] == 'pending'): ?>
-                                    <span class="status-badge yellow">รอดำเนินการ</span>
-                                <?php elseif ($row['approval_status'] == 'rejected'): ?>
-                                    <span class="status-badge grey">ถูกปฏิเสธ</span>
-                                <?php else: ?>
-                                    <span class="status-badge grey"><?php echo htmlspecialchars($row['approval_status']); ?></span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+        <div class="history-list-container">
+        
+            <?php if (empty($history)): ?>
+                <div class="history-card">
+                    <p style="text-align: center; width: 100%;">คุณยังไม่มีประวัติการยืม</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($history as $row): ?>
+                    
+                    <?php
+                        // (ตรรกะสำหรับเลือกไอคอนและ Badge)
+                        $badge_class = 'grey';
+                        $badge_text = htmlspecialchars($row['approval_status']);
+                        $icon_class = 'fas fa-question-circle'; // Default
+                        
+                        // (เราจะเช็ค status ที่ 'returned' ก่อน)
+                        if ($row['status'] == 'returned') {
+                            $badge_class = 'green';
+                            $badge_text = 'คืนแล้ว';
+                            $icon_class = 'fas fa-check-circle';
+                        } 
+                        // (ถ้าไม่ใช่ 'returned' ค่อยเช็ค approval_status)
+                        elseif ($row['approval_status'] == 'pending') {
+                            $badge_class = 'yellow';
+                            $badge_text = 'รอดำเนินการ';
+                            $icon_class = 'fas fa-hourglass-half';
+                        } elseif ($row['approval_status'] == 'rejected') {
+                            $badge_class = 'grey';
+                            $badge_text = 'ถูกปฏิเสธ';
+                            $icon_class = 'fas fa-times-circle';
+                        }
+                    ?>
 
+                    <div class="history-card">
+                        
+                        <div class="history-card-icon">
+                            <span class="status-badge <?php echo $badge_class; ?>">
+                                <i class="<?php echo $icon_class; ?>"></i>
+                            </span>
+                        </div>
+                        
+                        <div class="history-card-info">
+                            <h4><?php echo htmlspecialchars($row['equipment_name']); ?></h4>
+                            <p>
+                                ส่งคำขอ: <?php echo date('d/m/Y H:i', strtotime($row['borrow_date'])); ?>
+                            </p>
+                        </div>
+                        
+                        <div class="history-card-status">
+                            <span class="status-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
+                        </div>
+                    </div>
+                
+                <?php endforeach; ?>
+            <?php endif; ?>
+        
+        </div>
+        </div>
 </div> 
 
 <?php

@@ -747,15 +747,173 @@ body {
     }
 }
 
+/* (1) โค้ดเดิมสำหรับจัด z-index (ยังจำเป็น) */
 .swal2-html-container {
     position: relative;
     z-index: 1;
 }
-
-/* * (เผื่อไว้) ทำให้ตัว select box เอง
- * มี z-index สูงกว่า element อื่นในฟอร์ม
-*/
 .swal2-html-container select {
     position: relative;
-    z-index: 2;
+    z-index: 100;
+}
+
+/* * (2) โค้ดใหม่: บังคับปิด transform ทั้งหมด
+ * เมื่อหน้าจอมีขนาดเล็ก ( <= 768px)
+*/
+@media (max-width: 768px) {
+    
+    /* * บังคับปิด animation "transform" (เช่น scale, translate)
+     * ของ Popup และ Container เมื่อแสดงผลบนมือถือ
+     * (นี่คือตัวที่ทำให้ Dropdown เพี้ยน)
+    */
+    .swal2-popup.swal2-show,
+    .swal2-container.swal2-center {
+        transform: none !important;
+        -webkit-transform: none !important;
+    }
+}
+
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Live Search (borrow_list.php)
+ * ========================================= */
+
+/* (ปรับปรุง .filter-row เดิม) */
+.filter-row {
+    position: relative; /* ◀️ สำคัญมาก: เพื่อเป็นจุดอ้างอิงให้กล่องผลลัพธ์ */
+    z-index: 5; /* ◀️ ให้ช่องค้นหาอยู่เหนือการ์ด */
+}
+
+/* (กล่องที่หุ้มผลลัพธ์ทั้งหมด) */
+#search-results-container {
+    position: absolute;
+    top: 100%; /* ◀️ ให้แสดงอยู่ใต้ .filter-row */
+    left: 0;
+    right: 0;
+    background: var(--color-content-bg, #fff);
+    border: 1px solid var(--border-color, #eee);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-main, 12px) var(--border-radius-main, 12px);
+    box-shadow: var(--box-shadow-main, 0 8px 10px rgba(0,0,0,0.05));
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 4; /* (ต้องน้อยกว่า .filter-row) */
+    
+    /* (ซ่อนไว้ก่อน) */
+    display: none; 
+}
+
+/* (สไตล์ของผลลัพธ์แต่ละแถว) */
+.search-result-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color, #eee);
+    text-decoration: none;
+    color: var(--color-text-dark, #333);
+    gap: 1rem;
+}
+.search-result-item:last-child {
+    border-bottom: none;
+}
+.search-result-item:hover {
+    background-color: var(--color-page-bg, #f5f6fa);
+}
+
+/* (รูปย่อในผลลัพธ์) */
+.search-result-image {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+
+.search-result-info h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: bold;
+}
+.search-result-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted, #6c757d);
+}
+
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Placeholder (ในผลการค้นหา)
+ * ========================================= */
+
+/* (นี่คือ CSS สำหรับกล่องสีเทา ขนาด 40x40px) */
+.search-result-image-placeholder {
+    width: 40px;
+    height: 40px;
+    background-color: #f0f0f0; /* สีพื้นหลังเทาอ่อน */
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #cccccc; /* สีไอคอนเทาจางๆ */
+    font-size: 1.2rem; /* ขนาดไอคอนกล้อง */
+    flex-shrink: 0;
+}
+
+/* =========================================
+ * (ใหม่) สไตล์สำหรับหน้าประวัติ (request_history.php)
+ * ========================================= */
+
+.history-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem; /* ระยะห่างระหว่างการ์ด */
+}
+
+.history-card {
+    background: var(--color-content-bg, #fff);
+    border-radius: var(--border-radius-main, 12px);
+    box-shadow: var(--box-shadow-main, 0 2px 8px rgba(0,0,0,0.05));
+    display: flex;
+    align-items: center; /* จัดไอคอนกับข้อความให้อยู่กลาง */
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+}
+
+/* (ไอคอนวงกลมด้านซ้าย) */
+.history-card-icon {
+    flex-shrink: 0; /* ไม่หดตัว */
+}
+
+/* (ปรับปรุง Badge เดิม ให้เป็นวงกลมสำหรับไอคอน) */
+.history-card-icon .status-badge {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    padding: 0; /* ลบ padding เดิมของ badge */
+    border: none; /* (สำหรับ .grey, .yellow) */
+}
+
+.history-card-info {
+    flex-grow: 1; /* กินพื้นที่ที่เหลือ */
+    line-height: 1.4;
+}
+
+.history-card-info h4 {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 0 0 0.25rem 0;
+    color: var(--color-text-dark);
+}
+
+.history-card-info p {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+/* (Badge สถานะด้านขวา) */
+.history-card-status {
+    flex-shrink: 0; /* ไม่หดตัว */
 }

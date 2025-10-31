@@ -1,5 +1,6 @@
+```php
 <?php
-// borrow_list.php (หน้าสำหรับยืม - รายการของที่ว่าง)
+// borrow_list.php (อัปเดต: แก้ไข PHP Logic)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 // (⚠️ โค้ดสำหรับ Development Mode ⚠️)
@@ -14,11 +15,18 @@ require_once('db_connect.php'); //
 // 2. ดึง ID ของผู้ใช้งาน
 $student_id = $_SESSION['student_id']; 
 
-// 3. (Query เฉพาะของที่ว่าง)
+// 3. (แก้ไข Query) ดึงข้อมูลของที่ว่าง *ทั้งหมด*
 try {
-    $stmt_equip = $pdo->prepare("SELECT * FROM med_equipment WHERE status = 'available' ORDER BY name ASC");
-    $stmt_equip->execute();
+    // (สังเกต: เราดึงข้อมูล *ทั้งหมด* ที่ว่างในตอนแรก)
+    $sql = "SELECT id, name, description, serial_number, image_url 
+            FROM med_equipment 
+            WHERE status = 'available'
+            ORDER BY name ASC";
+    
+    $stmt_equip = $pdo->prepare($sql);
+    $stmt_equip->execute(); // (ไม่ต้องใช้ $params)
     $equipments = $stmt_equip->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
     $equipments = [];
     $equip_error = "เกิดข้อผิดพลาด: " . $e->getMessage();
@@ -26,40 +34,63 @@ try {
 
 // 4. ตั้งค่าตัวแปรสำหรับ Header
 $page_title = "ยืมอุปกรณ์";
-$active_page = 'borrow'; // ◀️ (สำคัญ) บอก Footer ว่าเมนูไหน Active
+$active_page = 'borrow'; 
 include('includes/student_header.php');
 ?>
 
-<div class="equipment-grid">
+<div class="main-container">
+
+    <div class="filter-row">
+        
+        <i class="fas fa-search" style="color: var(--color-text-muted);"></i>
+
+        <input type="text" 
+               name="search" 
+               id="liveSearchInput" 
+               placeholder="ค้นหาชื่ออุปกรณ์, รายละเอียด..." 
+               style="flex-grow: 1; border: none; outline: none; font-size: 1rem;">
+        
+        <button type="button" id="clearSearchBtn" class="btn btn-secondary" style="display: none; flex-shrink: 0;">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div id="search-results-container">
+            </div>
+
+    </div> <div class="section-card" style="background: none; box-shadow: none; padding: 0;">
+        
+        <h2 class="section-title">อุปกรณ์ที่พร้อมให้ยืม</h2>
+        <p class="text-muted">เลือกอุปกรณ์ที่คุณต้องการส่งคำขอยืม</p>
+
+        <?php if (isset($equip_error)) echo "<p style='color: red;'>$equip_error</p>"; ?>
+
+        <div class="equipment-grid" id="equipment-grid-container">
             
             <?php if (empty($equipments)): ?>
-                <p style="grid-column: 1 / -1; text-align: center;">ไม่มีอุปกรณ์ที่ว่างในขณะนี้</p>
+                <p style="grid-column: 1 / -1; text-align: center; margin-top: 2rem;">
+                    ไม่มีอุปกรณ์ที่ว่างในขณะนี้
+                </p>
             <?php else: ?>
                 <?php foreach ($equipments as $row): ?>
                     
                     <div class="equipment-card">
                         
                         <?php
-                            // --- ⬇️ นี่คือตรรกะใหม่ ⬇️ ---
-                            // 1. ตรวจสอบว่ามี image_url หรือไม่
+                            // (ตรรกะสำหรับแสดงรูปภาพ)
                             if (!empty($row['image_url'])):
-                                // ◀️ ถ้ามี: ให้แสดงแท็ก <img>
                                 $image_to_show = $row['image_url'];
                         ?>
                                 <img src="<?php echo htmlspecialchars($image_to_show); ?>" 
                                      alt="<?php echo htmlspecialchars($row['name']); ?>" 
                                      class="equipment-card-image"
-                                     onerror="this.parentElement.innerHTML = '<div class=\'equipment-card-image-placeholder\'><i class=\'fas fa-image-slash\'></i></div>';"> 
-                                     <?php
-                            else:
-                                // ◀️ ถ้าไม่มี: ให้แสดง Placeholder ที่เป็นไอคอน (ไม่เกิด 404)
-                        ?>
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"> 
+                                <div class="equipment-card-image-placeholder" style="display: none;"><i class="fas fa-image"></i></div>
+                        
+                        <?php else: ?>
                                 <div class="equipment-card-image-placeholder">
-                                    <i class="fas fa-camera"></i> </div>
-                        <?php
-                            endif;
-                            // --- ⬆️ จบตรรกะรูปภาพ ⬆️ ---
-                        ?>
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                        <?php endif; ?>
 
                         <div class="equipment-card-content">
                             <h3 class="equipment-card-title"><?php echo htmlspecialchars($row['name']); ?></h3>
@@ -82,10 +113,118 @@ include('includes/student_header.php');
                 <?php endforeach; ?>
             <?php endif; ?>
 
-        </div>
+        </div> 
+    </div>
+
+</div> 
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+// =========================================
+// (ใหม่) โค้ดสำหรับ Live Search
+// =========================================
+const searchInput = document.getElementById('liveSearchInput');
+const resultsContainer = document.getElementById('search-results-container');
+const gridContainer = document.getElementById('equipment-grid-container');
+const clearBtn = document.getElementById('clearSearchBtn');
+
+let searchTimeout; 
+
+searchInput.addEventListener('keyup', () => {
+    clearTimeout(searchTimeout);
+    const query = searchInput.value.trim();
+
+    if (query.length < 2) {
+        hideResults();
+        return;
+    }
+    searchTimeout = setTimeout(() => {
+        performSearch(query);
+    }, 300);
+});
+
+function performSearch(query) {
+    clearBtn.style.display = 'flex';
+    gridContainer.style.display = 'none';
+    resultsContainer.style.display = 'block';
+    resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">กำลังค้นหา...</p>';
+
+    fetch(`live_search_equipment.php?term=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.results.length > 0) {
+                displayResults(data.results);
+            } else {
+                resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">ไม่พบอุปกรณ์ที่ตรงกับคำค้นหา</p>';
+            }
+        })
+        .catch(error => {
+            resultsContainer.innerHTML = `<p style="padding: 1rem; text-align: center; color: red;">เกิดข้อผิดพลาด: ${error.message}</p>`;
+        });
+}
+
+// (4) ฟังก์ชันแสดงผลลัพธ์ (สร้าง HTML) - (เวอร์ชันอัปเดต V4)
+function displayResults(results) {
+    resultsContainer.innerHTML = ''; // (ล้างของเก่า)
+    
+    results.forEach(item => {
+        
+        let imageHtml = ''; // (1. สร้างตัวแปรเก็บ HTML รูปภาพ)
+
+        // (2. ตรวจสอบว่าใน DB มี image_url หรือไม่)
+        if (item.image_url) {
+            
+            // (3. ถ้ามี: สร้างแท็ก <img>)
+            imageHtml = `
+                <img src="${escapeJS(item.image_url)}" 
+                     alt="${escapeJS(item.name)}" 
+                     class="search-result-image"
+                     onerror="this.parentElement.innerHTML = '<div class=\'search-result-image-placeholder\'><i class=\'fas fa-image\'></i></div>'">`;
+                     // (กันเหนียว: ถ้า URL ใน DB เสีย ให้แสดงไอคอนรูปเสีย)
+
+        } else {
+            
+            // (4. ถ้าไม่มี: สร้าง <div> Placeholder ที่เราเพิ่งทำ CSS)
+            imageHtml = `
+                <div class="search-result-image-placeholder">
+                    <i class="fas fa-camera"></i>
+                </div>`;
+        }
+
+        // (5. สร้าง HTML ผลลัพธ์ 1 แถว (โดยใช้ imageHtml ที่ถูกต้อง))
+        const itemHtml = `
+            <div class="search-result-item" role="button" onclick="openRequestPopup(${item.id}, '${escapeJS(item.name)}')">
+                
+                ${imageHtml} <div class="search-result-info">
+                    <h4>${item.name}</h4>
+                    <p>${item.serial_number || 'N/A'}</p>
+                </div>
+            </div>
+        `;
+        resultsContainer.innerHTML += itemHtml;
+    });
+}
+
+function hideResults() {
+    clearBtn.style.display = 'none';
+    resultsContainer.style.display = 'none';
+    resultsContainer.innerHTML = '';
+    gridContainer.style.display = 'grid'; 
+}
+
+clearBtn.addEventListener('click', () => {
+    searchInput.value = ''; 
+    hideResults(); 
+});
+
+function escapeJS(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+// =========================================
+// (เดิม) โค้ดสำหรับ Popup ยืมของ
+// =========================================
 function openRequestPopup(equipmentId, equipmentName) {
     Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
@@ -165,7 +304,7 @@ function openRequestPopup(equipmentId, equipmentName) {
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire('ส่งคำขอสำเร็จ!', 'คำขอของคุณถูกส่งไปให้ Admin พิจารณาแล้ว', 'success')
-                    .then(() => location.href = 'request_history.php'); // (เปลี่ยนให้เด้งไปหน้า "ประวัติ")
+                    .then(() => location.href = 'request_history.php'); // (ส่งไปหน้าประวัติ)
                 }
             });
         })
