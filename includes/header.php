@@ -50,7 +50,11 @@
                     <a href="manage_students.php"><i class="fas fa-users-cog fa-fw" style="margin-right: 8px;"></i>จัดการผู้ใช้งาน</a>
                 </li>
                 <li class="<?php echo ($current_page == 'report') ? 'active' : ''; ?>">
-                    <a href="report_borrowed.php"><i class="fas fa-chart-line fa-fw" style="margin-right: 8px;"></i>รายงาน</a>
+                    <a href="report_borrowed.php"><i class="fas fa-chart-line fa-fw" style="margin-right: 8px;"></i>รายงาน (การยืม-คืน)</a>
+                </li>
+                
+                <li class="<?php echo ($current_page == 'admin_log') ? 'active' : ''; ?>">
+                    <a href="admin_log.php"><i class="fas fa-history fa-fw" style="margin-right: 8px;"></i>บันทึก Log (Admin)</a>
                 </li>
             <?php endif; ?>
         </ul>

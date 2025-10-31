@@ -3,7 +3,8 @@
 // รับคำขออนุมัติจาก Admin
 
 include('includes/check_session_ajax.php');
-require_once('db_connect.php'); //
+require_once('db_connect.php');
+require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
 header('Content-Type: application/json');
 $response = ['status' => 'error', 'message' => 'Invalid request'];
@@ -24,10 +25,10 @@ if ($transaction_id == 0) {
 }
 
 try {
-    // 3. เริ่ม Database Transaction (สำคัญมาก)
+    // 3. เริ่ม Database Transaction
     $pdo->beginTransaction();
 
-    // 4. ดึง ID อุปกรณ์ (equipment_id) และสถานะคำขอ (approval_status) จากคำขอ
+    // 4. ดึง ID อุปกรณ์ และสถานะคำขอ
     $stmt_get = $pdo->prepare("SELECT equipment_id, approval_status FROM med_transactions WHERE id = ?");
     $stmt_get->execute([$transaction_id]);
     $transaction = $stmt_get->fetch(PDO::FETCH_ASSOC);
@@ -41,37 +42,41 @@ try {
     
     $equipment_id = $transaction['equipment_id'];
 
-    // 5. (Critical Check) ตรวจสอบว่าอุปกรณ์ชิ้นนั้น "ยังว่าง" (available) อยู่หรือไม่
-    // (ใช้ FOR UPDATE เพื่อ "ล็อค" แถวนี้ ป้องกันคนอื่นยืมตัดหน้า)
+    // 5. ตรวจสอบว่าอุปกรณ์ยัง "ว่าง"
     $stmt_check = $pdo->prepare("SELECT status FROM med_equipment WHERE id = ? FOR UPDATE");
     $stmt_check->execute([$equipment_id]);
     $equipment_status = $stmt_check->fetchColumn();
 
     if ($equipment_status != 'available') {
-        // ถ้าไม่ว่าง (เช่น Admin อีกคนอนุมัติไปแล้ว หรือ Staff ยืมตัดหน้า)
-        // ให้ "ปฏิเสธ" คำขอนี้อัตโนมัติ
         $stmt_reject = $pdo->prepare("UPDATE med_transactions SET approval_status = 'rejected', status = 'returned' WHERE id = ?");
         $stmt_reject->execute([$transaction_id]);
-        
-        // Commit การ Reject นี้
         $pdo->commit();
         throw new Exception("ไม่อนุมัติ: อุปกรณ์ไม่ว่างแล้ว (สถานะปัจจุบัน: $equipment_status)");
     }
 
-    // 6. (อนุมัติ) ถ้าว่าง -> อัปเดตตาราง med_equipment ให้เป็น 'borrowed'
+    // 6. (อนุมัติ) อัปเดต med_equipment
     $stmt_equip = $pdo->prepare("UPDATE med_equipment SET status = 'borrowed' WHERE id = ? AND status = 'available'");
     $stmt_equip->execute([$equipment_id]);
 
-    // 7. (อนุมัติ) อัปเดตตาราง med_transactions ให้เป็น 'approved' และบันทึกวันที่ยืมจริง
+    // 7. (อนุมัติ) อัปเดต med_transactions
     $stmt_trans = $pdo->prepare("UPDATE med_transactions SET approval_status = 'approved', borrow_date = NOW() WHERE id = ?");
     $stmt_trans->execute([$transaction_id]);
 
-    // 8. ยืนยันการเปลี่ยนแปลงทั้งหมด
+    // ◀️ --- (เพิ่มส่วน Log) --- ◀️
+    if ($stmt_equip->rowCount() > 0 && $stmt_trans->rowCount() > 0) {
+        $admin_user_id = $_SESSION['user_id'] ?? null;
+        $admin_user_name = $_SESSION['full_name'] ?? 'System';
+        $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้อนุมัติคำขอ (TID: {$transaction_id}) สำหรับอุปกรณ์ (EID: {$equipment_id})";
+        log_action($pdo, $admin_user_id, 'approve_request', $log_desc);
+    }
+    // ◀️ --- (จบส่วน Log) --- ◀️
+
+    // 8. ยืนยัน
     $pdo->commit();
     $response = ['status' => 'success', 'message' => 'อนุมัติคำขอเรียบร้อย!'];
 
 } catch (Exception $e) {
-    // 9. หากเกิดข้อผิดพลาด ให้ย้อนกลับ
+    // 9. ย้อนกลับ
     $pdo->rollBack();
     $response['message'] = $e->getMessage();
 }

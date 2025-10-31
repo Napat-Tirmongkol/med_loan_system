@@ -4,7 +4,8 @@
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 include('includes/check_session_ajax.php');
-require_once('db_connect.php'); //
+require_once('db_connect.php');
+require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
@@ -20,7 +21,7 @@ $response = ['status' => 'error', 'message' => 'เกิดข้อผิด�
 // 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 5. รับข้อมูลจากฟอร์ม AJAX (ตามที่เราสร้างไว้ใน manage_students.php)
+    // 5. รับข้อมูลจากฟอร์ม AJAX
     $full_name    = isset($_POST['full_name']) ? trim($_POST['full_name']) : '';
     $phone_number = isset($_POST['phone_number']) ? trim($_POST['phone_number']) : null;
 
@@ -34,24 +35,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 6. (SQL ใหม่) ดำเนินการ INSERT ลง med_students
     try {
-        // เราจะตั้ง line_user_id = NULL และ status = 'other' 
-        // เพื่อบอกว่าคนนี้ Admin เป็นคนเพิ่มเอง
         $sql = "INSERT INTO med_students (full_name, phone_number, status, line_user_id, student_personnel_id) 
                 VALUES (?, ?, 'other', NULL, '(Staff-Added)')";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$full_name, $phone_number]);
-    if ($stmt->rowCount() > 0) {
-            // (ดึงข้อมูล Admin ที่กำลัง Log in)
+
+        $new_student_id = $pdo->lastInsertId();
+
+        // ◀️ --- (เพิ่มส่วน Log) --- ◀️
+        if ($stmt->rowCount() > 0) {
             $admin_user_id = $_SESSION['user_id'] ?? null;
             $admin_user_name = $_SESSION['full_name'] ?? 'System';
-            
-            // (สร้างข้อความ Log)
-            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้เพิ่มผู้ใช้งานใหม่: '{$full_name}'";
-            
-            // (บันทึก Log)
-            log_action($pdo, $admin_user_id, 'create_user', $log_desc);
+            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้เพิ่มผู้ใช้งาน (โดย Admin) ชื่อ: '{$full_name}' (ID ใหม่: {$new_student_id})";
+            log_action($pdo, $admin_user_id, 'create_user_staff', $log_desc);
         }
+        // ◀️ --- (จบส่วน Log) --- ◀️
+
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';
         $response['message'] = 'เพิ่มผู้ใช้งานใหม่สำเร็จ';

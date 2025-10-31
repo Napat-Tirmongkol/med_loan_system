@@ -2,8 +2,9 @@
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 include('includes/check_session_ajax.php');
 require_once('db_connect.php');
+require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
-// 2. ตรวจสอบสิทธิ์ (อนุญาต Admin และ Employee) และตั้งค่า Header
+// 2. ตรวจสอบสิทธิ์ (อนุญาต Admin และ Employee)
 if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'employee'])) {
     header('Content-Type: application/json');
     echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
@@ -17,7 +18,7 @@ $response = ['status' => 'error', 'message' => 'เกิดข้อผิด�
 // 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 5. รับข้อมูลจากฟอร์ม (ที่ส่งมาจาก AJAX)
+    // 5. รับข้อมูลจากฟอร์ม
     $equipment_id   = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0;
     $transaction_id = isset($_POST['transaction_id']) ? (int)$_POST['transaction_id'] : 0;
 
@@ -45,10 +46,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt_update_equip->rowCount() == 0 || $stmt_update_trans->rowCount() == 0) {
             throw new Exception("ไม่สามารถคืนอุปกรณ์ได้ (อาจถูกคืนไปแล้ว หรือข้อมูลผิดพลาด)");
         }
+
+        // ◀️ --- (เพิ่มส่วน Log) --- ◀️
+        $admin_user_id = $_SESSION['user_id'] ?? null;
+        $admin_user_name = $_SESSION['full_name'] ?? 'System';
+        $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้รับคืนอุปกรณ์ (EID: {$equipment_id}) จากคำสั่งยืม (TID: {$transaction_id})";
+        log_action($pdo, $admin_user_id, 'process_return', $log_desc);
+        // ◀️ --- (จบส่วน Log) --- ◀️
         
         $pdo->commit();
         
-        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
+        // 7. ถ้าสำเร็จ
         $response['status'] = 'success';
         $response['message'] = 'รับคืนอุปกรณ์เรียบร้อย';
 

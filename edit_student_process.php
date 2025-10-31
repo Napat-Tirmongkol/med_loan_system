@@ -5,6 +5,7 @@
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 include('includes/check_session_ajax.php');
 require_once('db_connect.php');
+require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
@@ -48,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($phone_number)) $phone_number = null;
     if (empty($student_personnel_id)) $student_personnel_id = null;
     if (empty($department)) $department = null;
-    if ($status != 'other') $status_other = null; // (ล้างค่า "อื่นๆ" ถ้าสถานะไม่ใช่ 'other')
+    if ($status != 'other') $status_other = null;
 
 
     // 6. (SQL ใหม่) ดำเนินการ UPDATE ตาราง med_students
@@ -72,6 +73,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $status_other,
             $student_id
         ]);
+
+        // ◀️ --- (เพิ่มส่วน Log) --- ◀️
+        if ($stmt->rowCount() > 0) {
+            $admin_user_id = $_SESSION['user_id'] ?? null;
+            $admin_user_name = $_SESSION['full_name'] ?? 'System';
+            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้แก้ไขข้อมูลผู้ใช้งาน: '{$full_name}' (SID: {$student_id})";
+            log_action($pdo, $admin_user_id, 'edit_user', $log_desc);
+        }
+        // ◀️ --- (จบส่วน Log) --- ◀️
 
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';

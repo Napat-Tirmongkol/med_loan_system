@@ -1,9 +1,9 @@
 <?php
-// report_borrowed.php (เวอร์ชันอัปเกรด V3)
+// report_borrowed.php (เวอร์ชันลบ Log ออก)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php'); //
-require_once('db_connect.php'); //
+include('includes/check_session.php');
+require_once('db_connect.php');
 
 // 2. ตรวจสอบสิทธิ์ Admin 
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
@@ -77,11 +77,11 @@ try {
 
 
 // 5. ตั้งค่าตัวแปรสำหรับ Header
-$page_title = "รายงาน (ประวัติทั้งหมด)";
-$current_page = "report"; 
+$page_title = "รายงาน (ประวัติการยืม-คืน)"; // ◀️ (แก้ไขชื่อเล็กน้อย)
+$current_page = "report";
 
 // 6. เรียกใช้ Header
-include('includes/header.php'); //
+include('includes/header.php');
 ?>
 
 <div class="header-row">
@@ -180,5 +180,5 @@ include('includes/header.php'); //
 
 <?php
 // 7. เรียกใช้ Footer
-include('includes/footer.php'); 
+include('includes/footer.php');
 ?>

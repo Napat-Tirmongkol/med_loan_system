@@ -4,7 +4,8 @@
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 include('includes/check_session_ajax.php');
-require_once('db_connect.php'); //
+require_once('db_connect.php');
+require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
@@ -25,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $line_user_id = isset($_POST['line_user_id_to_link']) ? trim($_POST['line_user_id_to_link']) : '';
     $new_username = isset($_POST['new_username']) ? trim($_POST['new_username']) : '';
     $new_password = isset($_POST['new_password']) ? trim($_POST['new_password']) : '';
-    $new_role     = isset($_POST['new_role']) ? trim($_POST['new_role']) : 'employee'; // (default เป็น employee)
+    $new_role     = isset($_POST['new_role']) ? trim($_POST['new_role']) : 'employee';
 
     if ($student_id == 0 || empty($line_user_id) || empty($new_username) || empty($new_password)) {
         $response['message'] = 'ข้อมูลที่ส่งมาไม่ครบถ้วน';
@@ -72,6 +73,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$new_username, $password_hash, $student_full_name, $new_role, $line_user_id]);
+
+        $new_user_id = $pdo->lastInsertId();
+
+        // ◀️ --- (เพิ่มส่วน Log) --- ◀️
+        if ($stmt->rowCount() > 0) {
+            $admin_user_id = $_SESSION['user_id'] ?? null;
+            $admin_user_name = $_SESSION['full_name'] ?? 'System';
+            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้เลื่อนขั้นผู้ใช้งาน (SID: {$student_id}) '{$student_full_name}' เป็น '{$new_role}' (UID ใหม่: {$new_user_id})";
+            log_action($pdo, $admin_user_id, 'promote_user', $log_desc);
+        }
+        // ◀️ --- (จบส่วน Log) --- ◀️
 
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';
