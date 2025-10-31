@@ -643,3 +643,119 @@ body {
 .equipment-card-image[src=""] {
     display: none; /* ซ่อนแท็ก img ที่ไม่มี src */
 }
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Card Layout (borrow_list.php)
+ * ========================================= */
+
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 1rem; 
+    align-items: stretch; /* ◀️ เพิ่มบรรทัดนี้ครับ */
+}
+
+.equipment-card {
+    background: var(--color-content-bg, #fff);
+    border-radius: var(--border-radius-main, 12px);
+    box-shadow: var(--box-shadow-main, 0 2px 8px rgba(0,0,0,0.05));
+    overflow: hidden; /* สำหรับรูปภาพ */
+    display: flex;
+    flex-direction: column; /* ◀️ นี่คือส่วนสำคัญที่ทำให้รูปอยู่บนข้อความ */
+}
+
+.equipment-card-image {
+    width: 100%;
+    height: 150px; /* กำหนดความสูงของรูป */
+    object-fit: cover; /* ให้รูปเต็มกรอบ */
+    background-color: #f0f0f0; /* สี placeholder */
+    border-bottom: 1px solid var(--border-color, #eee);
+}
+
+/* ◀️ นี่คือ CSS สำหรับกล่อง Placeholder ที่หายไป */
+.equipment-card-image-placeholder {
+    width: 100%;
+    height: 150px; 
+    background-color: #f0f0f0; /* สีพื้นหลังเทาอ่อน */
+    border-bottom: 1px solid var(--border-color, #eee);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #cccccc; /* สีไอคอนเทาจางๆ */
+    font-size: 3rem; /* ขนาดไอคอนกล้อง */
+}
+
+.equipment-card-content {
+    padding: 1rem;
+    flex-grow: 1; /* ให้เนื้อหายืดเต็ม */
+}
+
+.equipment-card-title {
+    font-weight: bold;
+    font-size: 1rem;
+    color: var(--color-text-dark, #2d3748);
+    margin: 0 0 0.5rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.4rem; 
+}
+
+.equipment-card-desc {
+    font-size: 0.9rem;
+    color: var(--color-text-muted, #6c757d);
+    margin: 0 0 1rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.7rem;
+}
+
+.equipment-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1rem 1rem 1rem;
+}
+
+/* ปรับแต่งปุ่ม .btn-loan ให้เป็นวงกลม */
+.equipment-card .btn-loan {
+    border-radius: 50%; 
+    width: 40px;
+    height: 40px;
+    padding: 0; 
+    font-size: 1.5rem; 
+    font-weight: 300;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+
+/* Responsive: ถ้าจอมือถือเล็กมาก ให้เหลือ 1 คอลัมน์ */
+@media (max-width: 480px) {
+    .equipment-grid {
+    }
+    .equipment-card-image {
+        height: 180px; 
+    }
+    .equipment-card-image-placeholder {
+        height: 150px;
+    }
+}
+
+.swal2-html-container {
+    position: relative;
+    z-index: 1;
+}
+
+/* * (เผื่อไว้) ทำให้ตัว select box เอง
+ * มี z-index สูงกว่า element อื่นในฟอร์ม
+*/
+.swal2-html-container select {
+    position: relative;
+    z-index: 2;
+}
