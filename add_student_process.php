@@ -41,7 +41,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$full_name, $phone_number]);
-
+    if ($stmt->rowCount() > 0) {
+            // (ดึงข้อมูล Admin ที่กำลัง Log in)
+            $admin_user_id = $_SESSION['user_id'] ?? null;
+            $admin_user_name = $_SESSION['full_name'] ?? 'System';
+            
+            // (สร้างข้อความ Log)
+            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้เพิ่มผู้ใช้งานใหม่: '{$full_name}'";
+            
+            // (บันทึก Log)
+            log_action($pdo, $admin_user_id, 'create_user', $log_desc);
+        }
         // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
         $response['status'] = 'success';
         $response['message'] = 'เพิ่มผู้ใช้งานใหม่สำเร็จ';

@@ -309,71 +309,114 @@ include('includes/header.php');
         });
     }
 
-    function openEditStudentPopup(studentId) {
-    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
-    fetch(`get_student_data.php?id=${studentId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== 'success') throw new Error(data.message);
-            const student = data.student;
+    // (ฟังก์ชัน Helper ใหม่ สำหรับ Popup "แก้ไข" เพื่อซ่อน/แสดง ช่อง "อื่นๆ")
+function checkOtherStatusPopup(value) {
+    var otherGroup = document.getElementById('other_status_group_popup');
+    var otherInput = document.getElementById('swal_edit_status_other');
+    if (value === 'other') {
+        otherGroup.style.display = 'block';
+        otherInput.required = true;
+    } else {
+        otherGroup.style.display = 'none';
+        otherInput.required = false;
+    }
+}
+
+   function openEditStudentPopup(studentId) {
+    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
+    fetch(`get_student_data.php?id=${studentId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') throw new Error(data.message);
+            const student = data.student;
             
-            // --- ⬇️ นี่คือส่วนที่แก้ไข ⬇️ ---
-            const formHtml = `
-                <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="student_id" value="${student.id}">
-                    <div style="margin-bottom: 15px;">
-                        <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล: <span style="color:red;">*</span></label>
-                        <input type="text" name="full_name" id="swal_edit_full_name" value="${student.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
+            // (ใหม่) เช็คสถานะ "อื่นๆ" สำหรับการแสดงผลครั้งแรก
+            const otherStatusDisplay = (student.status === 'other') ? 'block' : 'none';
+
+            // ◀️ (แก้ไข) อัปเกรด formHtml ให้มีทุกช่อง ◀️
+            const formHtml = `
+                <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
+                    <input type="hidden" name="student_id" value="${student.id}">
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_full_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อ-สกุล: <span style="color:red;">*</span></label>
+                        <input type="text" name="full_name" id="swal_edit_full_name" value="${student.full_name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_department" style="font-weight: bold; display: block; margin-bottom: 5px;">คณะ/หน่วยงาน:</label>
+                        <input type="text" name="department" id="swal_edit_department" value="${student.department || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_status" style="font-weight: bold; display: block; margin-bottom: 5px;">สถานภาพ: <span style="color:red;">*</span></label>
+                        <select name="status" id="swal_edit_status" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;" onchange="checkOtherStatusPopup(this.value)">
+                            <option value="student" ${student.status === 'student' ? 'selected' : ''}>นักศึกษา</option>
+                            <option value="teacher" ${student.status === 'teacher' ? 'selected' : ''}>อาจารย์</option>
+                            <option value="staff" ${student.status === 'staff' ? 'selected' : ''}>เจ้าหน้าที่</option>
+                            <option value="other" ${student.status === 'other' ? 'selected' : ''}>อื่นๆ</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="other_status_group_popup" style="display: ${otherStatusDisplay}; margin-bottom: 15px;">
+                        <label for="swal_edit_status_other" style="font-weight: bold; display: block; margin-bottom: 5px;">โปรดระบุ "อื่นๆ":</label>
+                        <input type="text" name="status_other" id="swal_edit_status_other" value="${student.status_other || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
 
                     <div style="margin-bottom: 15px;">
                         <label for="swal_edit_student_id" style="font-weight: bold; display: block; margin-bottom: 5px;">รหัสผู้ใช้งาน/บุคลากร:</label>
                         <input type="text" name="student_personnel_id" id="swal_edit_student_id" value="${student.student_personnel_id || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
-                                        <div style="margin-bottom: 15px;">
-                        <label for="swal_edit_phone_number" style="font-weight: bold; display: block; margin-bottom: 5px;">เบอร์โทร:</label>
-                        <input type="text" name="phone_number" id="swal_edit_phone_number" value="${student.phone_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
-                </form>`;
-            // --- ⬆️ จบส่วนที่แก้ไข ⬆️ ---
-                Swal.fire({
-                    title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
-                    html: formHtml,
-                    showCancelButton: true,
-                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
-                    cancelButtonText: 'ยกเลิก',
-                    confirmButtonColor: 'var(--color-primary, #0B6623)',
-                    focusConfirm: false,
-                    preConfirm: () => {
-                        const form = document.getElementById('swalEditStudentForm');
-                        const fullName = form.querySelector('#swal_edit_full_name').value;
-                        if (!fullName) {
-                            Swal.showValidationMessage('กรุณากรอก ชื่อ-สกุล');
-                            return false;
-                        }
-                        return fetch('edit_student_process.php', {
-                                method: 'POST',
-                                body: new FormData(form)
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.status !== 'success') throw new Error(data.message);
-                                return data;
-                            })
-                            .catch(error => {
-                                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
-                            });
+
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_edit_phone_number" style="font-weight: bold; display: block; margin-bottom: 5px;">เบอร์โทร:</label>
+                        <input type="text" name="phone_number" id="swal_edit_phone_number" value="${student.phone_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                </form>`;
+
+            Swal.fire({
+                title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
+                html: formHtml,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: 'var(--color-primary, #0B6623)',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const form = document.getElementById('swalEditStudentForm');
+                    const fullName = form.querySelector('#swal_edit_full_name').value;
+                    const status = form.querySelector('#swal_edit_status').value;
+                    const statusOther = form.querySelector('#swal_edit_status_other').value;
+
+                    // (อัปเดต Validation)
+                    if (!fullName || !status) {
+                        Swal.showValidationMessage('กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบถ้วน');
+                        return false;
                     }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
+                    if (status === 'other' && !statusOther) {
+                        Swal.showValidationMessage('กรุณาระบุสถานภาพ "อื่นๆ"');
+                        return false;
                     }
-                });
-            })
-            .catch(error => {
-                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+                    // (จบส่วน Validation)
+                    
+                    return fetch('edit_student_process.php', { method: 'POST', body: new FormData(form) })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') throw new Error(data.message);
+                            return data;
+                        })
+                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
+                }
             });
-    }
+        })
+        .catch(error => {
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+        });
+}
 
     function openPromotePopup(studentId, studentName, lineId) {
         Swal.fire({

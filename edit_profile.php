@@ -5,7 +5,7 @@
 // (⚠️ โค้ดสำหรับ Development Mode ⚠️)
 @session_start(); 
 // include('includes/check_student_session.php'); 
-$_SESSION['student_id'] = 1; 
+$_SESSION['student_id'] = 9; 
 $_SESSION['student_full_name'] = "ผู้ใช้ทดสอบ";
 // (⚠️ จบส่วน Development Mode ⚠️)
 

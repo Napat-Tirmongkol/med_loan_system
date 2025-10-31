@@ -1,5 +1,5 @@
 <?php
-// student_dashboard.php (หน้าหลัก - รายการที่ยืมอยู่)
+// student_dashboard.php (หน้าหลัก - รายการที่ยืมอยู่ - Layout ใหม่)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 // (⚠️ โค้ดสำหรับ Development Mode - ใช้สำหรับตกแต่งหน้าเว็บ ⚠️)
@@ -40,51 +40,59 @@ include('includes/student_header.php');
 
 <div class="main-container">
 
-    <div class="section-card">
+    <div class="section-card" style="background: none; box-shadow: none; padding: 0;">
         <h2 class="section-title">อุปกรณ์ที่ฉันกำลังยืม (รายการที่ต้องคืน)</h2>
+        <p class="text-muted">รายการอุปกรณ์ที่ยืมอยู่และสถานะการคืน</p>
         
         <?php if (isset($borrowed_error)) echo "<p style='color: red;'>$borrowed_error</p>"; ?>
         
-        <table>
-            <thead>
-                <tr>
-                    <th>อุปกรณ์</th>
-                    <th>เลขซีเรียล</th>
-                    <th>วันที่ยืม</th>
-                    <th>วันที่กำหนดคืน</th>
-                    <th>สถานะ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($currently_borrowed)): ?>
-                    <tr>
-                        <td colspan="5" style="text-align: center;">คุณไม่มีอุปกรณ์ที่กำลังยืมอยู่</td>
-                    </tr>
-                <?php else: ?>
-                    <?php foreach ($currently_borrowed as $row): ?>
-                        <tr>
-                            <td><?php echo htmlspecialchars($row['equipment_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></td>
-                            <td><?php echo date('d/m/Y H:i', strtotime($row['borrow_date'])); ?></td>
-                            <td><?php echo date('d/m/Y', strtotime($row['due_date'])); ?></td>
-                            <td>
-                                <?php // (เช็คว่าเลยกำหนดหรือยัง)
-                                    $due_date_time = strtotime($row['due_date']);
-                                    if ($due_date_time < time()) {
-                                        echo '<span class="status-badge red">เกินกำหนดคืน</span>';
-                                    } else {
-                                        echo '<span class="status-badge blue">กำลังยืม</span>';
-                                    }
-                                ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div> 
-    
-    </div> 
+        <div class="history-list-container">
+        
+            <?php if (empty($currently_borrowed)): ?>
+                <div class="history-card">
+                    <p style="text-align: center; width: 100%;">คุณไม่มีอุปกรณ์ที่กำลังยืมอยู่</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($currently_borrowed as $row): ?>
+                    
+                    <?php
+                        // (ตรรกะสำหรับเช็คว่า "เกินกำหนด" หรือ "กำลังยืม")
+                        $is_overdue = (strtotime($row['due_date']) < time());
+                        
+                        // (ใช้ Badge สีแดงสำหรับ "เกินกำหนด" และสีฟ้าสำหรับ "กำลังยืม")
+                        $badge_class = $is_overdue ? 'red' : 'blue';
+                        $badge_text = $is_overdue ? 'เกินกำหนด' : 'กำลังยืม';
+                        $icon_class = $is_overdue ? 'fas fa-calendar-times' : 'fas fa-hand-holding-medical';
+                    ?>
+
+                    <div class="history-card">
+                        
+                        <div class="history-card-icon">
+                            <span class="status-badge <?php echo $badge_class; ?>">
+                                <i class="<?php echo $icon_class; ?>"></i>
+                            </span>
+                        </div>
+                        
+                        <div class="history-card-info">
+                            <h4><?php echo htmlspecialchars($row['equipment_name']); ?></h4>
+                            <p>
+                                ยืมเมื่อ: <?php echo date('d/m/Y', strtotime($row['borrow_date'])); ?> |
+                                คืน: <strong><?php echo date('d/m/Y', strtotime($row['due_date'])); ?></strong>
+                            </p>
+                        </div>
+                        
+                        <div class="history-card-status">
+                            <span class="status-badge <?php echo $badge_class; ?>"><?php echo $badge_text; ?></span>
+                        </div>
+                    </div>
+                
+                <?php endforeach; ?>
+            <?php endif; ?>
+        
+        </div>
+        </div> 
+
+</div> 
 
 <?php
 // 5. เรียกใช้ Footer

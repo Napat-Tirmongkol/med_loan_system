@@ -113,7 +113,7 @@ try {
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th style="width: 70px;">รูปภาพ</th> <th>ID</th>
                     <th>ชื่ออุปกรณ์</th>
                     <th>เลขซีเรียล</th>
                     <th>รายละเอียด</th>
@@ -124,17 +124,28 @@ try {
             <tbody>
                 <?php if (empty($equipments)): ?>
                     <tr>
-                        <td colspan="6" style="text-align: center;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</td>
-                    </tr>
+                        <td colspan="8" style="text-align: center;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</td> </tr>
                 <?php else: ?>
                     <?php foreach ($equipments as $row): ?>
                         <tr>
-                            <td><?php echo $row['id']; ?></td>
-                            <td><?php echo htmlspecialchars($row['name']); ?></td>
+                            <td>
+                                <?php if (!empty($row['image_url'])): ?>
+                                    <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
+                                         alt="รูป" 
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                    <div class="equipment-card-image-placeholder" style="display: none; width: 50px; height: 50px; font-size: 1.5rem;"><i class="fas fa-image"></i></div>
+                                <?php else: ?>
+                                    <div class="equipment-card-image-placeholder" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo $row['id']; ?></td> <td><?php echo htmlspecialchars($row['name']); ?></td>
                             <td><?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></td>
                             <td style="white-space: pre-wrap; min-width: 200px;"><?php echo htmlspecialchars($row['description'] ?? '-'); ?></td>
                             <td>
-                                <?php // (ข้อ 5) Status Badge
+                                <?php // (Status Badge ... โค้ดส่วนนี้ถูกต้องแล้ว)
                                 if ($row['status'] == 'available'): ?>
                                     <span class="status-badge available">ว่าง</span>
                                 <?php elseif ($row['status'] == 'borrowed'): ?>
@@ -148,7 +159,7 @@ try {
                                 <?php endif; ?>
                             </td>
                             <td class="action-buttons">
-                                <?php // (ข้อ 4) Action Buttons
+                                <?php // (Action Buttons ... โค้ดส่วนนี้ถูกต้องแล้ว)
                                 if ($row['status'] == 'available'): ?>
                                     <button type="button" class="btn btn-borrow" onclick="openBorrowPopup(<?php echo $row['id']; ?>)">ยืม</button>
                                 <?php elseif ($row['status'] == 'borrowed'): ?>
@@ -175,7 +186,7 @@ try {
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// ( ... โค้ดฟังก์ชัน openAddEquipmentPopup() ... เหมือนเดิม ... )
+
 function openAddEquipmentPopup() {
     Swal.fire({
         title: '➕ เพิ่มอุปกรณ์ใหม่',
@@ -193,7 +204,12 @@ function openAddEquipmentPopup() {
                     <label for="swal_eq_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
                     <textarea name="description" id="swal_eq_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
                 </div>
-            </form>`,
+
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพ (ถ้ามี):</label>
+                    <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                </div>
+                </form>`,
         width: '600px',
         showCancelButton: true,
         confirmButtonText: 'บันทึกอุปกรณ์ใหม่',
@@ -207,6 +223,8 @@ function openAddEquipmentPopup() {
                 Swal.showValidationMessage('กรุณากรอกชื่ออุปกรณ์');
                 return false;
             }
+            
+            // (สำคัญ) FormData สามารถส่งไฟล์ที่แนบไปกับ fetch ได้เลย
             return fetch('add_equipment_process.php', { method: 'POST', body: new FormData(form) })
                 .then(response => response.json())
                 .then(data => {
@@ -221,8 +239,6 @@ function openAddEquipmentPopup() {
         }
     });
 }
-
-// ( ... โค้ดฟังก์ชัน confirmDeleteEquipment() ... เหมือนเดิม ... )
 function confirmDeleteEquipment(event, id) {
     event.preventDefault(); 
     const url = event.currentTarget.href;

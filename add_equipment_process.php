@@ -1,6 +1,6 @@
 <?php
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session_ajax.php'); // <-- เปลี่ยนชื่อ "ยาม"
+include('includes/check_session_ajax.php');
 require_once('db_connect.php');
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
@@ -31,16 +31,48 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($serial_number)) $serial_number = null;
     if (empty($description)) $description = null;
 
-    // 6. ดำเนินการ INSERT
+    // ◀️ (6. ใหม่!) ส่วนจัดการการอัปโหลดไฟล์
+    $image_url_to_db = null; // (ค่าเริ่มต้นคือ NULL)
+
+    if (isset($_FILES['image_file']) && $_FILES['image_file']['error'] == 0) {
+        $upload_dir = 'images/'; // โฟลเดอร์ที่เราสร้างไว้
+        
+        // (สร้างชื่อไฟล์ใหม่ที่ไม่ซ้ำกัน)
+        $file_extension = pathinfo($_FILES['image_file']['name'], PATHINFO_EXTENSION);
+        $new_filename = uniqid('equip-', true) . '.' . strtolower($file_extension);
+        $target_file = $upload_dir . $new_filename;
+
+        // (ตรวจสอบว่าเป็นไฟล์รูปภาพจริงหรือไม่)
+        $check = getimagesize($_FILES['image_file']['tmp_name']);
+        if ($check !== false) {
+            // (พยายามย้ายไฟล์)
+            if (move_uploaded_file($_FILES['image_file']['tmp_name'], $target_file)) {
+                $image_url_to_db = $target_file; // (ถ้าสำเร็จ ให้ใช้ Path นี้)
+            } else {
+                $response['message'] = 'ไม่สามารถอัปโหลดไฟล์รูปภาพได้ (ย้ายไฟล์ล้มเหลว)';
+                echo json_encode($response);
+                exit;
+            }
+        } else {
+            $response['message'] = 'ไฟล์ที่แนบมาไม่ใช่ไฟล์รูปภาพ';
+            echo json_encode($response);
+            exit;
+        }
+    }
+    // ◀️ (จบส่วนอัปโหลดไฟล์)
+
+
+    // 7. ดำเนินการ INSERT
     try {
-        // สถานะ 'available' เป็นค่า DEFAULT
-        $sql = "INSERT INTO med_equipment (name, serial_number, description)
-                VALUES (?, ?, ?)";
+        // (แก้ไข SQL ให้เพิ่ม image_url)
+        $sql = "INSERT INTO med_equipment (name, serial_number, description, image_url)
+                VALUES (?, ?, ?, ?)";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$name, $serial_number, $description]);
+        // (เพิ่ม $image_url_to_db เข้าไป)
+        $stmt->execute([$name, $serial_number, $description, $image_url_to_db]);
 
-        // 7. ถ้าสำเร็จ ให้เปลี่ยนคำตอบ
+        // 8. ถ้าสำเร็จ
         $response['status'] = 'success';
         $response['message'] = 'เพิ่มอุปกรณ์ใหม่สำเร็จ';
 
@@ -56,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $response['message'] = 'ต้องใช้วิธี POST เท่านั้น';
 }
 
-// 8. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
+// 9. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
 echo json_encode($response);
 exit;
 ?>

@@ -89,11 +89,32 @@ function openEditPopup(equipmentId) {
                 `;
             }
             
+            // (สร้าง HTML สำหรับรูปตัวอย่าง)
+            let imagePreviewHtml = `
+                <div class="equipment-card-image-placeholder" style="width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;">
+                    <i class="fas fa-camera"></i>
+                </div>`;
+            if (equip.image_url) {
+                imagePreviewHtml = `
+                    <img src="${equip.image_url}" 
+                         alt="รูปตัวอย่าง" 
+                         style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 15px;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                    <div class="equipment-card-image-placeholder" style="display: none; width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;"><i class="fas fa-image"></i></div>`;
+            }
+
             Swal.fire({
                 title: '🔧 แก้ไขข้อมูลอุปกรณ์',
                 html: `
                 <form id="swalEditForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="equipment_id" value="${equip.id}">
+                    
+                    ${imagePreviewHtml} <input type="hidden" name="equipment_id" value="${equip.id}">
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพใหม่ (เพื่อแทนที่):</label>
+                        <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                        <small style="color: #6c757d;">(หากไม่ต้องการเปลี่ยนรูป ให้เว้นว่างไว้)</small>
+                    </div>
                     <div style="margin-bottom: 15px;">
                         <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่ออุปกรณ์:</label>
                         <input type="text" name="name" id="swal_name" value="${equip.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
@@ -102,12 +123,10 @@ function openEditPopup(equipmentId) {
                         <label for="swal_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล:</label>
                         <input type="text" name="serial_number" id="swal_serial" value="${equip.serial_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
-                    
                     <div style="margin-bottom: 15px;">
                         <label for="swal_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
                         <textarea name="description" id="swal_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${equip.description || ''}</textarea>
                     </div>
-                    
                     <div style="margin-bottom: 15px;">
                         <label for="swal_status" style="font-weight: bold; display: block; margin-bottom: 5px;">สถานะ:</label>
                         <select name="status" id="swal_status" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
