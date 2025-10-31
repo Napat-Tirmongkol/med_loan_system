@@ -1,288 +1,484 @@
-/* * CSS สำหรับ Layout (โครงสร้าง)
- */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0; /* ลบ margin เริ่มต้นของ body */
-    background-color: #f4f4f4;
+/* =========================================
+ * NEW DESIGN V3 (Design Brief 6-Point)
+ * ========================================= */
+
+/* 0. ประกาศฟอนต์ RSU */
+@font-face {
+  font-family: 'RSU';
+  src: url('../Fonts/RSU_light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'RSU';
+  src: url('../Fonts/RSU_Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'RSU';
+  src: url('../Fonts/RSU_BOLD.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
 }
 
-/* 1. ส่วน Header */
+/* 1. CSS Variables (ตัวแปรสี) */
+:root {
+    --color-primary: #0B6623; 
+    --color-primary-dark: #084C1A; 
+    
+    /* (ข้อ 1) เปลี่ยนสีพื้นหลังเป็นเทาอ่อน */
+    --color-page-bg: #f5f6fa; 
+    
+    --color-content-bg: #FFFFFF; 
+    --color-sidebar-bg: #343a40; 
+    --color-sidebar-hover: #495057; 
+    --color-sidebar-active: var(--color-primary); 
+    
+    --color-text-dark: #2d3748; /* (ข้อ 2) สีเข้มขึ้น */
+    --color-text-light: #f8f9fa; 
+    --color-text-muted: #6c757d; 
+    
+    --color-success: #16a34a; /* (ข้อ 2) สีเขียวปุ่ม */
+    --color-success-dark: #15803d;
+    --color-danger: #dc3545; 
+    --color-warning: #ffc107; 
+    --color-info: #17a2b8; 
+    --color-secondary: #6c757d;
+    
+    --border-color: #e5e7eb; /* (ข้อ 4) */
+    --border-radius-main: 12px; /* (ข้อ 3) */
+    --box-shadow-main: 0 2px 8px rgba(0,0,0,0.05); /* (ข้อ 1) */
+}
+
+/* 2. Global Styles (สไตล์โดยรวม) */
+body {
+    font-family: 'RSU', Arial, sans-serif;
+    margin: 0;
+    background-color: var(--color-page-bg); /* (ข้อ 1) */
+    color: var(--color-text-dark);
+}
+
+/* 3. Layout (โครงสร้าง) */
 .header {
-    background-color: #007bff; /* สีน้ำเงิน */
-    color: white;
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
     padding: 15px 30px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    position: fixed; /* ทำให้ Header ค้างอยู่ด้านบน */
+    position: fixed;
     width: 100%;
     top: 0;
     left: 0;
-    z-index: 1000; /* ทำให้ Header อยู่หน้าสุด */
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
 }
 .header h1 {
     margin: 0;
     font-size: 1.5em;
 }
 
-/* 2. ส่วน Sidebar (เมนูด้านข้าง) */
 .sidebar {
-    width: 250px; /* ความกว้างของ Sidebar */
-    background-color: #343a40; /* สีเทามืด */
-    color: white;
-    position: fixed; /* ทำให้ Sidebar ค้างอยู่ด้านข้าง */
-    top: 60px; /* เว้นที่สำหรับ Header (ความสูงของ header + padding) */
+    width: 250px;
+    background-color: var(--color-sidebar-bg);
+    color: var(--color-text-light);
+    position: fixed;
+    top: 60px;
     left: 0;
     bottom: 0;
     padding-top: 20px;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
-.sidebar ul {
-    list-style-type: none; /* ลบ Bullet point */
-    padding: 0;
-    margin: 0;
-}
-.sidebar ul li {
-    padding: 15px 20px;
-    border-bottom: 1px solid #495057; /* เส้นคั่นเมนู */
-}
-.sidebar ul li a {
-    text-decoration: none;
-    color: #f8f9fa; /* สีขาวสว่าง */
-    display: block;
-}
-.sidebar ul li a:hover {
-    background-color: #495057; /* สีพื้นหลังเมื่อเมาส์ชี้ */
-}
-.sidebar ul li.active {
-    background-color: #007bff; /* สีเมนูที่ถูกเลือก */
-}
+.sidebar ul { list-style-type: none; padding: 0; margin: 0; }
+.sidebar ul li { padding: 15px 20px; border-bottom: 1px solid var(--color-sidebar-hover); }
+.sidebar ul li a { text-decoration: none; color: var(--color-text-light); display: block; }
+.sidebar ul li a:hover { background-color: var(--color-sidebar-hover); }
+.sidebar ul li.active { background-color: var(--color-sidebar-active); }
 
-/* 3. ส่วนเนื้อหาหลัก (Main Content) */
+/* (ข้อ 1) ปรับ .content */
 .content {
-    margin-top: 60px;  /* เว้นที่สำหรับ Header */
-    margin-left: 250px; /* เว้นที่สำหรับ Sidebar */
-    padding: 20px;
+    margin-top: 60px;
+    margin-left: 250px;
+    padding: 2rem; /* (ข้อ 1) */
+    max-width: 1200px; /* (ข้อ 1) */
+    margin-right: auto;
+    margin-left: 260px; /* (เผื่อ sidebar + 10px) */
 }
 
-/* * CSS สำหรับตารางและปุ่ม (ของเดิม)
- */
+/* 4. Components (องค์ประกอบต่างๆ) */
+
+/* (กล่องเนื้อหา - ใช้สำหรับ Dashboard) */
 .container {
-    max-width: 1000px; /* ปรับขนาดให้พอดีกับ content */
-    margin: auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: var(--color-content-bg);
+    padding: 0;
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--box-shadow-main);
 }
 .container h2 {
-    color: #333;
-    text-align: center;
-    margin-top: 0;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 12px;
+    color: var(--color-text-dark);
     text-align: left;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    background-color: #fff;
+    border-bottom: 1px solid var(--border-color);
+    border-top-left-radius: var(--border-radius-main);
+    border-top-right-radius: var(--border-radius-main);
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
 }
-th {
-    background-color: #f2f2f2;
-    color: #555;
+.container h2 i {
+    font-size: 20px;
+    margin-right: 0.75rem;
+    color: var(--color-text-muted);
 }
-tr:hover {
-    background-color: #f9f9f9;
+.container-content {
+    padding: 1.25rem 1.5rem;
 }
 
-/* สไตล์สำหรับปุ่ม (ของเดิม) */
+
+/* (ปุ่ม) */
 .btn {
-    padding: 8px 12px;
+    padding: 6px 12px; /* (ข้อ 4) */
     text-decoration: none;
-    border-radius: 4px;
-    color: white;
+    border-radius: 6px; /* (ข้อ 4) */
+    font-size: 0.85rem; /* (ข้อ 4) */
     font-weight: bold;
-}
-.btn-borrow { background-color: #28a745; }
-.btn-return { background-color: #007bff; }
-.btn-manage { background-color: #ffc107; }
-
-/* สไตล์สำหรับสถานะ (Status) (ของเดิม) */
-.status {
-    padding: 5px 8px;
-    border-radius: 4px;
-    color: white;
-    font-weight: bold;
-    font-size: 0.9em;
-}
-.status-available { background-color: #28a745; }
-.status-borrowed { background-color: #dc3545; }
-.status-maintenance { background-color: #6c757d; }
-
-/*
- * =========================================
- * CSS สำหรับ KPI Boxes (ดีไซน์ใหม่แบบมีไอคอน)
- * =========================================
- */
-
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.kpi-box {
-    background-color: #ffffff;
-    padding: 25px 30px; /* เพิ่ม padding */
-    border-radius: 12px; /* โค้งมนมากขึ้น */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* เงาชัดขึ้น */
-    
-    /* นี่คือหัวใจ (Flexbox) */
-    display: flex; 
-    justify-content: space-between; /* แบ่งซ้าย (Text) ขวา (Icon) */
-    align-items: center; /* จัดให้อยู่กลางแนวตั้ง */
-    
-    border-left-width: 7px; /* เส้นขอบหนาขึ้น */
-    border-left-style: solid;
-}
-
-.kpi-text p {
-    margin: 0;
-    font-size: 0.9em; /* เล็กลงเล็กน้อย */
-    color: #666;
-    font-weight: bold;
-}
-
-.kpi-text h2 {
-    margin: 5px 0 0 0;
-    font-size: 2.2em; /* เล็กลงเล็กน้อย */
-    color: #333;
-}
-
-/* ส่วนของไอคอน (วงกลม) */
-.kpi-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; /* ทำให้เป็นวงกลม */
-    display: flex;
-    justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: inline-flex;
     align-items: center;
-    font-size: 1.5em; /* ขนาดไอคอน */
-    color: #ffffff; /* สีไอคอนข้างใน */
+    gap: 0.5rem;
 }
+.btn-borrow { background-color: var(--color-success); color: white; }
+.btn-borrow:hover { background-color: var(--color-success-dark); }
+.btn-return { background-color: var(--color-primary); color: white; }
+.btn-return:hover { background-color: var(--color-primary-dark); }
+.btn-manage { background-color: var(--color-warning); color: #333; }
+.btn-manage:hover { background-color: #e0a800; }
+.btn-logout { background-color: var(--color-danger) !important; color: #fff !important; padding: 8px 15px; }
+.btn-logout:hover { background-color: #c82333 !important; }
+.btn-secondary { background-color: #e5e7eb; color: #333; }
+.btn-secondary:hover { background-color: #d1d5db; }
 
-/*
- * =========================================
- * CSS สำหรับ KPI Boxes (ดีไซน์ใหม่แบบ stat-card)
- * =========================================
- */
 
+/* 5. KPI Boxes (ดีไซน์เดิมจาก V2) */
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 คอลัมน์ */
-    gap: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem; 
+    margin-bottom: 1.5rem; 
 }
-
 .stat-card {
-    background-color: #ffffff;
+    background-color: var(--color-content-bg);
     padding: 25px;
-    border-radius: 12px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    display: flex; 
-    justify-content: space-between; /* แบ่งซ้าย (Text) ขวา (Icon) */
-    align-items: center; 
-    border-left-width: 7px; /* เส้นขอบหนาขึ้น */
-    border-left-style: solid;
-}
-
-.stat-card-info .title {
-    margin: 0;
-    font-size: 0.9em; 
-    color: #555; /* สีเทาเข้ม */
-    font-weight: bold;
-}
-
-.stat-card-info .value {
-    margin: 5px 0 0 0;
-    font-size: 2.2em; 
-    color: #333;
-    font-weight: bold;
-}
-
-/* ส่วนของไอคอน (วงกลม) */
-.stat-card-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; /* ทำให้เป็นวงกลม */
+    border-radius: var(--border-radius-main);
+    box-shadow: var(--box-shadow-main);
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    font-size: 1.5em; /* ขนาดไอคอน */
-    color: #ffffff; /* สีไอคอนข้างใน */
 }
-
-/* * =========================================
- * การกำหนดสี (ตามตัวอย่าง)
- * =========================================
- */
-
-/* 1. "กำลังถูกยืม" (เปลี่ยนเป็น สีเขียว) */
-.stat-card.kpi-borrowed {
-    border-left-color: #28a745; /* สีเขียว */
-}
-.stat-card.kpi-borrowed .stat-card-info .value {
-    color: #28a745;
-}
-.stat-card.kpi-borrowed .stat-card-icon {
-    background-color: #28a745;
-}
-
-/* 2. "พร้อมใช้งาน" (เปลี่ยนเป็น สีน้ำเงิน) */
-.stat-card.kpi-available {
-    border-left-color: #007bff; /* สีน้ำเงิน */
-}
-.stat-card.kpi-available .stat-card-info .value {
-    color: #007bff;
-}
-.stat-card.kpi-available .stat-card-icon {
-    background-color: #007bff;
-}
-
-/* 3. "เกินกำหนดคืน" (เปลี่ยนเป็น สีแดง) */
-.stat-card.kpi-overdue {
-    border-left-color: #dc3545; /* สีแดง */
-}
-.stat-card.kpi-overdue .stat-card-info .value {
-    color: #dc3545;
-}
-.stat-card.kpi-overdue .stat-card-icon {
-    background-color: #dc3545;
-}
-
-/* 4. "ซ่อมบำรุง" (สีส้ม - คงเดิม) */
-.stat-card.kpi-maintenance {
-    border-left-color: #fd7e14;
-}
-.stat-card.kpi-maintenance .stat-card-info .value {
-    color: #fd7e14;
-}
-.stat-card.kpi-maintenance .stat-card-icon {
-    background-color: #fd7e14;
-}
+.stat-card-info .title { margin: 0; font-size: 0.9em; color: #555; font-weight: bold; }
+.stat-card-info .value { margin: 5px 0 0 0; font-size: 2.2em; color: #333; font-weight: bold; }
+.stat-card-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5em; color: #ffffff; }
+.stat-card.kpi-borrowed .stat-card-info .value { color: var(--color-success); }
+.stat-card.kpi-borrowed .stat-card-icon { background-color: var(--color-success); }
+.stat-card.kpi-available .stat-card-info .value { color: var(--color-primary); }
+.stat-card.kpi-available .stat-card-icon { background-color: var(--color-primary); }
+.stat-card.kpi-overdue .stat-card-info .value { color: var(--color-danger); }
+.stat-card.kpi-overdue .stat-card-icon { background-color: var(--color-danger); }
+.stat-card.kpi-maintenance .stat-card-info .value { color: #fd7e14; }
+.stat-card.kpi-maintenance .stat-card-icon { background-color: #fd7e14; }
 
 
-/* สำหรับหน้าจอขนาดเล็ก (มือถือ) ให้แสดง 2 คอลัมน์ */
+/* 6. Dashboard Grid (ดีไซน์เดิมจาก V2) */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* (ข้อ 2) */
+    gap: 1.5rem; /* (ข้อ 2) */
+}
+.dashboard-grid .container table {
+    display: table;
+    overflow-x: auto;
+    white-space: normal;
+}
+.container.activity-log {
+     padding: 0;
+     margin-top: 1.5rem;
+}
+.activity-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.activity-item { display: flex; align-items: center; gap: 1rem; background-color: #f9f9f9; border-radius: 8px; padding: 1rem; border: 1px solid #f0f0f0; }
+.activity-item p { margin: 0; line-height: 1.4; }
+.activity-icon { font-size: 1.5em; }
+
+
+/* 7. Responsive Design (สไตล์เดิม) */
+.hamburger-btn { display: none; background: none; border: none; color: white; font-size: 1.5em; cursor: pointer; margin-right: 15px; }
+.sidebar-open-overlay::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1010; display: none; }
+.sidebar-open-overlay.sidebar-open-overlay::before { display: block; }
+
+/* (ลบ .container table ที่ซ้ำซ้อนออก) */
+
 @media (max-width: 992px) {
-    .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .hamburger-btn { display: block; }
+    .sidebar { position: fixed; left: -260px; top: 0; height: 100vh; z-index: 1020; transition: left 0.3s ease; padding-top: 60px; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+    .sidebar.sidebar-visible { left: 0; }
+    .content { margin-left: 0; padding: 1rem; max-width: none; } /* (ปรับ) */
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.2em; }
+    .header .user-info { font-size: 0.8em; gap: 10px; }
+    .btn-logout { padding: 6px 12px; font-size: 0.8em; }
 }
 @media (max-width: 576px) {
-    /* บนจอมือถือเล็กมาก ให้เหลือ 1 คอลัมน์ */
-    .kpi-grid {
-        grid-template-columns: repeat(1, 1fr);
+    .kpi-grid { grid-template-columns: 1fr; }
+    .header { padding: 10px 15px; }
+    .content { margin-top: 50px; }
+}
+
+
+/* =========================================
+ * (ข้อ 2, 3, 4, 5) สไตล์ใหม่สำหรับหน้า Manage Equipment
+ * ========================================= */
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  background: var(--color-content-bg);
+  padding: 1.25rem 1.5rem; /* (ข้อ 3) */
+  border-radius: var(--border-radius-main);
+  box-shadow: var(--box-shadow-main);
+}
+.header-row h2 {
+  font-size: 1.25rem; /* (ข้อ 2) */
+  font-weight: 600; /* (ข้อ 2) */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0; /* (ลบสไตล์ h2 ของ .container) */
+  padding: 0;
+  background: none;
+  border-bottom: none;
+}
+.add-btn {
+  background: var(--color-success); /* (ข้อ 2) */
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'RSU', Arial, sans-serif; /* (ใช้ฟอนต์ RSU) */
+  font-size: 1rem;
+  font-weight: bold;
+}
+.add-btn:hover { background: var(--color-success-dark); }
+.add-btn i { margin-right: 0.5rem; }
+
+/* (ข้อ 3) */
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius-main);
+  box-shadow: var(--box-shadow-main);
+  margin-bottom: 1.5rem;
+}
+.filter-row label {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+.filter-row input, .filter-row select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: 'RSU', Arial, sans-serif;
+  font-size: 0.95rem;
+}
+.filter-row .btn-return { /* (ปุ่มกรอง) */
+    background-color: var(--color-primary);
+}
+.filter-row .btn-secondary { /* (ปุ่มล้างค่า) */
+    background-color: #e5e7eb;
+    color: #333;
+}
+.filter-row .btn-secondary:hover {
+    background-color: #d1d5db;
+}
+
+
+/* (ข้อ 4) */
+.table-container {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--border-radius-main);
+  overflow: hidden; /* (สำคัญมากสำหรับ border-radius) */
+  box-shadow: var(--box-shadow-main);
+}
+.table-container table {
+    display: table; /* (ลบล้าง display: block) */
+    width: 100%;
+    border: none;
+    margin-top: 0;
+}
+.table-container th, .table-container td {
+  padding: 12px 16px; /* (ข้อ 4) */
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  white-space: normal; /* (ให้ตัดคำได้) */
+}
+.table-container th {
+  background: #f1f5f9; /* (ข้อ 4) */
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* (ลบเส้นขอบล่างของแถวสุดท้าย) */
+.table-container tr:last-child td {
+    border-bottom: none;
+}
+
+/* (ข้อ 5) Status Badge */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 9999px; /* (ข้อ 5) */
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: inline-block;
+}
+.status-badge.available { background: #dcfce7; color: #166534; }
+.status-badge.borrowed { background: #fef9c3; color: #854d0e; }
+.status-badge.maintenance { background: #fee2e2; color: #991b1b; }
+/* (ใหม่) Status Badges for Transactions (Report Page) */
+.status-badge.pending { background: #fef9c3; color: #854d0e; } /* Yellow */
+.status-badge.returned { background: #dcfce7; color: #166534; } /* Green */
+.status-badge.rejected { background: #e5e7eb; color: #4b5563; } /* Grey */
+.status-badge.borrowed-ok { background: #dbeafe; color: #1e40af; } /* Blue */
+.status-badge.overdue { background: #fee2e2; color: #991b1b; } /* Red */
+
+/* (ข้อ 4) Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem; /* (ข้อ 4) */
+}
+.action-buttons .btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold; /* (ใช้ฟอนต์ RSU Bold) */
+}
+.action-buttons .btn-danger {
+    background-color: var(--color-danger);
+    color: white;
+}
+.action-buttons .btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+/* (ปรับปรุง responsive ของ filter) */
+@media (max-width: 768px) {
+    .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
     }
 }
+
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Student Dashboard V4 (Layout 6 ข้อ)
+ * ========================================= */
+
+/* (ข้อ 1) Container กลาง */
+.main-container {
+  max-width: 1100px;
+  margin: 0 auto; /* จัดให้อยู่กลางแนวนอน */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* (ข้อ 1) ระยะห่างระหว่าง section */
+}
+
+/* (ข้อ 3) Card */
+.section-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  padding: 1.5rem; /* (ข้อ 3) */
+}
+
+/* (ข้อ 2) หัวข้อ Section */
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-top: 0; /* (ลบ margin เดิม) */
+  margin-bottom: 0.75rem;
+}
+.text-muted {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--color-text-muted);
+}
+
+/* (ข้อ 4) ตารางใน Card */
+.section-card table {
+    display: table; /* (สำคัญ: ลบล้าง display: block) */
+    width: 100%;
+    border-collapse: collapse;
+    white-space: normal;
+    margin-top: 1rem;
+}
+.section-card th, 
+.section-card td {
+  padding: 12px 16px; /* (ข้อ 4) */
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  white-space: normal;
+}
+.section-card th {
+  background-color: #f3f4f6; /* (ข้อ 4) */
+  font-weight: 600;
+  white-space: nowrap;
+}
+.section-card tr:last-child td {
+    border-bottom: none;
+}
+.section-card td:last-child {
+    text-align: center; /* (ข้อ 5) จัดปุ่มให้อยู่กลาง */
+}
+
+/* (ข้อ 5) ปุ่ม "ส่งคำขอยืม" */
+.btn-loan {
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: background 0.2s;
+  font-family: 'RSU', Arial, sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.btn-loan:hover {
+  background-color: #15803d;
+}
+
+/* (ข้อ 5) Badges ใหม่สำหรับหน้านี้ */
+.status-badge.red { background: #fee2e2; color: #991b1b; }
+.status-badge.green { background: #dcfce7; color: #166534; }
+.status-badge.yellow { background: #fef9c3; color: #854d0e; }
+.status-badge.grey { background: #e5e7eb; color: #4b5563; }
+.status-badge.blue { background: #dbeafe; color: #1e40af; }

@@ -1,6 +1,6 @@
 <?php
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
+include('includes/check_session_ajax.php'); //
 require_once('db_connect.php');
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
@@ -22,8 +22,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name          = isset($_POST['name']) ? trim($_POST['name']) : '';
     $serial_number = isset($_POST['serial_number']) ? trim($_POST['serial_number']) : null;
     $status        = isset($_POST['status']) ? $_POST['status'] : '';
+    $description   = isset($_POST['description']) ? trim($_POST['description']) : null; // <-- (เพิ่ม)
 
-    if (empty($serial_number)) $serial_number = null; // อนุญาตให้ Serial ว่าง
+    if (empty($serial_number)) $serial_number = null;
+    if (empty($description)) $description = null; // <-- (เพิ่ม)
 
     // 6. ตรวจสอบข้อมูล
     if ($equipment_id == 0 || empty($name) || empty($status)) {
@@ -33,14 +35,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // 7. ตรวจสอบว่า status ที่ส่งมาถูกต้อง
-    // (ป้องกันการพยายามเปลี่ยนเป็น 'borrowed' จากหน้านี้)
     if ($status != 'available' && $status != 'maintenance' && $status != 'borrowed') {
          $response['message'] = 'สถานะที่เลือกไม่ถูกต้อง';
          echo json_encode($response);
          exit;
     }
     
-    // (ตรรกะป้องกันการแก้ไขสถานะ 'borrowed' ถ้ามันไม่ได้ 'borrowed' มาก่อน)
     try {
         $stmt_check = $pdo->prepare("SELECT status FROM med_equipment WHERE id = ?");
         $stmt_check->execute([$equipment_id]);
@@ -50,13 +50,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             throw new Exception("ไม่สามารถเปลี่ยนสถานะเป็น 'ถูกยืม' จากหน้านี้ได้");
         }
         
-        // 8. ดำเนินการ UPDATE
+        // 8. ดำเนินการ UPDATE (เพิ่ม description)
         $sql = "UPDATE med_equipment 
-                SET name = ?, serial_number = ?, status = ?
+                SET name = ?, serial_number = ?, status = ?, description = ?
                 WHERE id = ?";
         
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$name, $serial_number, $status, $equipment_id]);
+        $stmt->execute([$name, $serial_number, $status, $description, $equipment_id]); // <-- (เพิ่ม)
 
         $response['status'] = 'success';
         $response['message'] = 'บันทึกการเปลี่ยนแปลงสำเร็จ';

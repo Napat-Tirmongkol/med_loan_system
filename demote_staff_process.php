@@ -1,0 +1,75 @@
+<?php
+// demote_staff_process.php
+// รับ ID พนักงาน (med_users) มาเพื่อลบ
+
+// 1. "จ้างยาม" และ "เชื่อมต่อ DB"
+include('includes/check_session_ajax.php'); //
+require_once('db_connect.php'); //
+
+// 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
+if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
+}
+header('Content-Type: application/json');
+
+// 3. สร้างตัวแปรสำหรับเก็บคำตอบ
+$response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
+
+// 4. ตรวจสอบว่าเป็นการส่งข้อมูลแบบ POST หรือไม่
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    // 5. รับ ID พนักงาน (จากตาราง med_users)
+    $user_id = isset($_POST['user_id_to_demote']) ? (int)$_POST['user_id_to_demote'] : 0;
+
+    if ($user_id == 0) {
+        $response['message'] = 'ไม่ได้ระบุ ID พนักงาน';
+        echo json_encode($response);
+        exit;
+    }
+    
+    // (ป้องกัน Admin ลบตัวเอง)
+    if ($user_id == $_SESSION['user_id']) {
+         $response['message'] = 'คุณไม่สามารถลดสิทธิ์บัญชีของตัวเองได้';
+         echo json_encode($response);
+         exit;
+    }
+
+    // 6. *** ตรวจสอบ Foreign Key Constraint ***
+    //    เช็คว่าพนักงานคนนี้มี "ประวัติการอนุมัติ" (lending_staff_id) ค้างอยู่หรือไม่
+    try {
+        $sql_check = "SELECT COUNT(*) FROM med_transactions WHERE lending_staff_id = ?";
+        $stmt_check = $pdo->prepare($sql_check);
+        $stmt_check->execute([$user_id]);
+        $transaction_count = $stmt_check->fetchColumn();
+
+        // 7. ถ้ามีประวัติ (มากกว่า 0) -> ห้ามลบ
+        if ($transaction_count > 0) {
+             throw new Exception("ไม่สามารถลบ/ลดสิทธิ์ได้ เนื่องจากพนักงานคนนี้มีประวัติการอนุมัติคำขอค้างอยู่ (Foreign Key Constraint)");
+        }
+
+        // 8. ถ้าไม่มีประวัติ -> ดำเนินการลบจาก med_users
+        $sql_delete = "DELETE FROM med_users WHERE id = ?";
+        $stmt_delete = $pdo->prepare($sql_delete);
+        $stmt_delete->execute([$user_id]);
+
+        if ($stmt_delete->rowCount() > 0) {
+            $response['status'] = 'success';
+            $response['message'] = 'ลดสิทธิ์/ลบบัญชีพนักงานกลับเป็นผู้ใช้งานสำเร็จ';
+        } else {
+            throw new Exception("ไม่พบพนักงานคนนี้ในระบบ (อาจถูกลบไปแล้ว)");
+        }
+
+    } catch (Exception $e) {
+        $response['message'] = $e->getMessage();
+    }
+
+} else {
+    $response['message'] = 'ต้องใช้วิธี POST เท่านั้น';
+}
+
+// 9. ส่งคำตอบ (JSON) กลับไปให้ JavaScript
+echo json_encode($response);
+exit;
+?>

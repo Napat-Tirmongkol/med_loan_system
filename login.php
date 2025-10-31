@@ -15,26 +15,26 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log in - ระบบยืมคืนอุปกรณ์การแพทย์</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css"> 
     
     <style>
         body {
-            background-color: #f4f4f4; /* สีพื้นหลังเหมือนหน้าหลัก */
+            background-color: var(--color-page-bg, #B7E5CD); /* (ใช้สีเขียวมินต์) */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh; /* ให้เต็มหน้าจอ */
         }
         .login-container {
-            background: #fff;
+            background: var(--color-content-bg, #fff);
             padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: var(--border-radius-main, 12px);
+            box-shadow: var(--box-shadow-main, 0 4px 12px rgba(0,0,0,0.08));
             width: 350px;
             text-align: center;
         }
         .login-container h1 {
-            color: #333;
+            color: var(--color-primary, #0B6623); /* (สีเขียวเข้ม) */
             margin-bottom: 20px;
         }
         .login-container input[type="text"],
@@ -42,21 +42,22 @@ if (isset($_SESSION['user_id'])) {
             width: 90%;
             padding: 12px;
             margin-bottom: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border-color, #ddd);
             border-radius: 4px;
         }
         .login-container button {
             width: 100%;
             padding: 12px;
-            background-color: #007bff; /* สีน้ำเงิน */
+            background-color: var(--color-primary, #0B6623); /* (สีเขียวเข้ม) */
             color: white;
             border: none;
             border-radius: 4px;
             font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
         .login-container button:hover {
-            background-color: #0056b3;
+            background-color: var(--color-primary-dark, #084C1A);
         }
         /* ส่วนแสดงข้อความ Error (ถ้า Log in ผิด) */
         .error-message {

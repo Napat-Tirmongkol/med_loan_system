@@ -1,6 +1,9 @@
 <?php
+// get_student_data.php
+// ดึงข้อมูลผู้ใช้งาน (med_students) สำหรับ Popup แก้ไข
+
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
+include('includes/check_session_ajax.php');
 require_once('db_connect.php');
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
@@ -15,29 +18,29 @@ header('Content-Type: application/json');
 $response = [
     'status' => 'error',
     'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ',
-    'borrower' => null
+    'student' => null // (คงชื่อตัวแปร student ไว้)
 ];
 
-// 4. รับ ID ผู้ยืมจาก URL
-$borrower_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($borrower_id == 0) {
-    $response['message'] = 'ไม่ได้ระบุ ID ผู้ยืม';
+// 4. รับ ID ผู้ใช้งาน (Student ID) จาก URL
+$student_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($student_id == 0) {
+    $response['message'] = 'ไม่ได้ระบุ ID ผู้ใช้งาน';
     echo json_encode($response);
     exit;
 }
 
 try {
-    // 5. ดึงข้อมูลผู้ยืม
-    $stmt = $pdo->prepare("SELECT * FROM med_borrowers WHERE id = ?");
-    $stmt->execute([$borrower_id]);
-    $borrower = $stmt->fetch(PDO::FETCH_ASSOC);
+    // 5. (SQL) ดึงข้อมูลจาก med_students
+    $stmt = $pdo->prepare("SELECT * FROM med_students WHERE id = ?");
+    $stmt->execute([$student_id]);
+    $student = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($borrower) {
+    if ($student) {
         $response['status'] = 'success';
-        $response['borrower'] = $borrower;
+        $response['student'] = $student; 
         $response['message'] = 'ดึงข้อมูลสำเร็จ';
     } else {
-        $response['message'] = 'ไม่พบข้อมูลผู้ยืม';
+        $response['message'] = 'ไม่พบข้อมูลผู้ใช้งาน';
     }
 
 } catch (PDOException $e) {

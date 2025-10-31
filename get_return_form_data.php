@@ -1,7 +1,11 @@
 <?php
+// get_return_form_data.php
+// (อัปเดต: JOIN ตาราง med_students)
+// ดึงข้อมูลสำหรับ Popup "ยืนยันการรับคืน"
+
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
-require_once('db_connect.php');
+include('includes/check_session_ajax.php');
+require_once('db_connect.php'); //
 
 // 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
@@ -15,7 +19,7 @@ header('Content-Type: application/json');
 $response = [
     'status' => 'error', 
     'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ',
-    'transaction' => null // สำหรับเก็บข้อมูลการยืม
+    'transaction' => null
 ];
 
 // 4. รับ ID อุปกรณ์จาก URL
@@ -27,21 +31,24 @@ if ($equipment_id == 0) {
 }
 
 try {
-    // 5. ดึงข้อมูลการยืม (Transaction) ที่ยัง "active" (status='borrowed')
-    //    (เรา JOIN 3 ตารางเพื่อเอาชื่อมาแสดง)
+    // 5. (SQL ใหม่) ดึงข้อมูลการยืม (Transaction) ที่ยัง "active"
+    //    (JOIN ใหม่กับ med_students)
     $sql = "SELECT 
                 t.id as transaction_id, 
                 t.borrow_date, 
                 t.due_date,
                 e.name as equipment_name, 
                 e.serial_number as equipment_serial,
-                b.full_name as borrower_name,
-                b.contact_info as borrower_contact
+                s.full_name as borrower_name, /* (มาจาก med_students) */
+                s.phone_number as borrower_contact /* (มาจาก med_students) */
             FROM med_transactions t
             JOIN med_equipment e ON t.equipment_id = e.id
-            JOIN med_borrowers b ON t.borrower_id = b.id
+            /* (JOIN ใหม่) ใช้ borrower_student_id เชื่อมไปยัง med_students */
+           /* (JOIN ... ) */
+            LEFT JOIN med_students s ON t.borrower_student_id = s.id
             WHERE t.equipment_id = ? AND t.status = 'borrowed'
-            ORDER BY t.borrow_date DESC 
+              AND t.approval_status IN ('approved', 'staff_added') /* <-- เพิ่มบรรทัดนี้ */
+            ORDER BY t.borrow_date DESC
             LIMIT 1"; // เอาเฉพาะรายการล่าสุดที่ยังไม่คืน
 
     $stmt = $pdo->prepare($sql);

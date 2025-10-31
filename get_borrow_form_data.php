@@ -1,7 +1,12 @@
 <?php
+// get_borrow_form_data.php
+// (อัปเดต: ดึงข้อมูลจาก med_students)
+// ดึงข้อมูลสำหรับ Popup "ยืม" (ที่ Admin กด)
+
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
-require_once('db_connect.php');
+// (เราใช้ 'check_session.php' เพราะนี่คือฟังก์ชันของ Admin/Staff)
+include('includes/check_session_ajax.php');
+require_once('db_connect.php'); //
 
 // 2. ตั้งค่า Header ให้ตอบกลับเป็น JSON
 header('Content-Type: application/json');
@@ -10,8 +15,8 @@ header('Content-Type: application/json');
 $response = [
     'status' => 'error', 
     'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ',
-    'equipment' => null, // สำหรับเก็บข้อมูลอุปกรณ์
-    'borrowers' => []  // สำหรับเก็บรายชื่อผู้ยืม
+    'equipment' => null, 
+    'borrowers' => []  // (***สำคัญ: เรายังใช้ชื่อ 'borrowers' เหมือนเดิม)
 ];
 
 // 4. รับ ID อุปกรณ์จาก URL
@@ -23,25 +28,34 @@ if ($equipment_id == 0) {
 }
 
 try {
-    // 5.1 ดึงข้อมูลอุปกรณ์ที่กำลังจะยืม (ต้อง "ว่าง" เท่านั้น)
+    // 5.1 ดึงข้อมูลอุปกรณ์ (เหมือนเดิม)
     $stmt_equip = $pdo->prepare("SELECT id, name, serial_number FROM med_equipment WHERE id = ? AND status = 'available'");
     $stmt_equip->execute([$equipment_id]);
     $equipment = $stmt_equip->fetch(PDO::FETCH_ASSOC);
 
     if (!$equipment) {
-        $response['message'] = 'ไม่พบอุปกรณ์ หรืออุปกรณ์นี้ไม่พร้อมให้ยืม (อาจถูกยืมไปแล้ว)';
+        $response['message'] = 'ไม่พบอุปกรณ์ หรืออุปกรณ์นี้ไม่พร้อมให้ยืม';
         echo json_encode($response);
         exit;
     }
-    
     $response['equipment'] = $equipment;
 
-    // 5.2 ดึงรายชื่อผู้ยืมทั้งหมด (จาก med_borrowers)
-    $stmt_borrowers = $pdo->prepare("SELECT id, full_name, contact_info FROM med_borrowers ORDER BY full_name ASC");
+    // 5.2 (SQL ใหม่) ดึงรายชื่อผู้ใช้ทั้งหมดจาก med_students
+    $stmt_borrowers = $pdo->prepare("SELECT id, full_name, phone_number FROM med_students ORDER BY full_name ASC");
     $stmt_borrowers->execute();
-    $borrowers = $stmt_borrowers->fetchAll(PDO::FETCH_ASSOC);
+    $borrowers_list = $stmt_borrowers->fetchAll(PDO::FETCH_ASSOC);
     
-    $response['borrowers'] = $borrowers;
+    // (เปลี่ยน 'phone_number' เป็น 'contact_info' เพื่อให้ JS เดิมทำงานได้)
+    $borrowers_formatted = [];
+    foreach ($borrowers_list as $person) {
+        $borrowers_formatted[] = [
+            'id' => $person['id'],
+            'full_name' => $person['full_name'],
+            'contact_info' => $person['phone_number'] // (แปลงชื่อคอลัมน์)
+        ];
+    }
+    
+    $response['borrowers'] = $borrowers_formatted; // (ส่งกลับในชื่อ 'borrowers')
     $response['status'] = 'success';
     $response['message'] = 'ดึงข้อมูลสำเร็จ';
 

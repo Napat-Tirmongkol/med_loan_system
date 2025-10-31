@@ -1,10 +1,10 @@
 <?php
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
+include('includes/check_session_ajax.php');
 require_once('db_connect.php');
 
-// 2. ตรวจสอบสิทธิ์ Admin และตั้งค่า Header
-if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
+// 2. ตรวจสอบสิทธิ์ (อนุญาต Admin และ Employee) และตั้งค่า Header
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'employee'])) {
     header('Content-Type: application/json');
     echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
     exit;
