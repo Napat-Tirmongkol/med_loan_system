@@ -1,6 +1,53 @@
-</main> <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<?php
+// includes/footer.php (อัปเกรด: เพิ่ม Footer Nav)
+
+// (ตรวจสอบค่า $current_page ถ้าไม่มี ให้เป็น 'index')
+$current_page = $current_page ?? 'index'; 
+?>
+
+</main> <nav class="footer-nav">
+    
+    <a href="index.php" class="<?php echo ($current_page == 'index') ? 'active' : ''; ?>">
+        <i class="fas fa-tachometer-alt"></i>
+        ภาพรวม
+    </a>
+    
+    <a href="return_dashboard.php" class="<?php echo ($current_page == 'return') ? 'active' : ''; ?>">
+        <i class="fas fa-undo-alt"></i>
+        คืนอุปกรณ์
+    </a>
+    
+    <a href="manage_equipment.php" class="<?php echo ($current_page == 'manage_equip') ? 'active' : ''; ?>">
+        <i class="fas fa-tools"></i>
+        จัดการอุปกรณ์
+    </a>
+
+    <?php 
+    // (เมนู 4, 5, 6 จะแสดงเฉพาะ Admin เท่านั้น)
+    if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): 
+    ?>
+    
+    <a href="manage_students.php" class="<?php echo ($current_page == 'manage_user') ? 'active' : ''; ?>">
+        <i class="fas fa-users-cog"></i>
+        จัดการผู้ใช้
+    </a>
+    
+    <a href="report_borrowed.php" class="<?php echo ($current_page == 'report') ? 'active' : ''; ?>">
+        <i class="fas fa-chart-line"></i>
+        รายงาน
+    </a>
+    
+    <a href="admin_log.php" class="<?php echo ($current_page == 'admin_log') ? 'active' : ''; ?>">
+        <i class="fas fa-history"></i>
+        Log Admin
+    </a>
+
+    <?php endif; // (จบการเช็ค Admin) ?>
+</nav>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// 1. ฟังก์ชัน "ยืม"
+
+// (ฟังก์ชัน "ยืม")
 function openBorrowPopup(equipmentId) {
     Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
     fetch(`get_borrow_form_data.php?id=${equipmentId}`)
@@ -8,7 +55,6 @@ function openBorrowPopup(equipmentId) {
         .then(data => {
             if (data.status !== 'success') throw new Error(data.message);
             
-            // (เราใช้ชื่อ 'borrowers' ที่ถูกส่งมาจาก get_borrow_form_data.php)
             let borrowerOptions = '<option value="">--- กรุณาเลือกผู้ยืม ---</option>';
             if (data.borrowers.length > 0) {
                 data.borrowers.forEach(b => { 
@@ -71,7 +117,7 @@ function openBorrowPopup(equipmentId) {
         });
 }
 
-// 2. ฟังก์ชัน "แก้ไข" (อัปเดตแล้ว)
+// 2. ฟังก์ชัน "แก้ไข" (อัปเดตสำหรับ File Upload)
 function openEditPopup(equipmentId) {
     Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
     fetch(`get_equipment_data.php?id=${equipmentId}`)
@@ -115,6 +161,7 @@ function openEditPopup(equipmentId) {
                         <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                         <small style="color: #6c757d;">(หากไม่ต้องการเปลี่ยนรูป ให้เว้นว่างไว้)</small>
                     </div>
+                    
                     <div style="margin-bottom: 15px;">
                         <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่ออุปกรณ์:</label>
                         <input type="text" name="name" id="swal_name" value="${equip.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
@@ -177,7 +224,6 @@ function openReturnPopup(equipmentId) {
             const formatDate = (dateString) => {
                 if (!dateString) return 'N/A';
                 const date = new Date(dateString);
-                // (แก้ไข format วันที่ให้สั้นลง)
                 return date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
             };
             
@@ -296,27 +342,8 @@ function openRejectPopup(transactionId) {
     });
 }
 
-// ( ... โค้ดสำหรับ Hamburger ... )
-const hamburgerBtn = document.getElementById('hamburgerBtn');
-const sidebar = document.querySelector('.sidebar');
-const body = document.body; 
+// (ลบ JS ของ Hamburger ทิ้ง)
 
-if (hamburgerBtn && sidebar) {
-    hamburgerBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('sidebar-visible');
-        body.classList.toggle('sidebar-open-overlay'); 
-    });
-    
-    body.addEventListener('click', (event) => {
-        if (body.classList.contains('sidebar-open-overlay') && 
-            !sidebar.contains(event.target) && 
-            !hamburgerBtn.contains(event.target)) {
-            
-            sidebar.classList.remove('sidebar-visible');
-            body.classList.remove('sidebar-open-overlay');
-        }
-    });
-}
 </script>
 
 </body>
