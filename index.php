@@ -120,88 +120,106 @@ include('includes/header.php');
 
 <div class="dashboard-grid">
 
-    <div class="container">
-        <h2><i class="fas fa-hourglass-half" style="color: #fd7e14;"></i> รายการคำขอยืมที่รอดำเนินการ</h2>
-        <div class="container-content">
+    <div class="container-content">
             <?php if (isset($pending_error)) echo "<p style='color: red;'>$pending_error</p>"; ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ผู้ขอ (ผู้ใช้งาน)</th>
-                        <th>อุปกรณ์</th>
-                        <th>เหตุผล</th>
-                        <th>กำหนดคืน</th>
-                        <th>จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($pending_requests)): ?>
-                        <tr>
-                            <td colspan="5" style="text-align: center;">ไม่มีคำขอยืมที่รอดำเนินการ</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($pending_requests as $request): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($request['student_name'] ?? '[N/A]'); ?></td>
-                                <td><?php echo htmlspecialchars($request['equipment_name']); ?></td>
-                                <td style="white-space: pre-wrap; min-width: 150px;"><?php echo htmlspecialchars($request['reason_for_borrowing']); ?></td>
-                                <td><?php echo date('d/m/Y', strtotime($request['due_date'])); ?></td>
-                                <td style="white-space: nowrap;">
-                                    <button type="button" 
-                                            class="btn btn-borrow" 
-                                            onclick="openApprovePopup(<?php echo $request['transaction_id']; ?>)">อนุมัติ</button>
-                                    
-                                    <button type="button" 
-                                            class="btn" 
-                                            style="background-color: #dc3545; margin-left: 5px;" 
-                                            onclick="openRejectPopup(<?php echo $request['transaction_id']; ?>)">ปฏิเสธ</button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            
+            <div class="history-list-container">
+            
+                <?php if (empty($pending_requests)): ?>
+                    <div class="history-card">
+                        <p style="text-align: center; width: 100%;">ไม่มีคำขอยืมที่รอดำเนินการ</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($pending_requests as $request): ?>
+                        <div class="history-card">
+                            
+                            <div class="history-card-icon">
+                                <span class="status-badge yellow"> <i class="fas fa-hourglass-half"></i>
+                                </span>
+                            </div>
+                            
+                            <div class="history-card-info">
+                                <h4><?php echo htmlspecialchars($request['equipment_name']); ?></h4>
+                                <p>
+                                    ผู้ขอ: <strong><?php echo htmlspecialchars($request['student_name'] ?? '[N/A]'); ?></strong>
+                                </p>
+                                <p>
+                                    กำหนดคืน: <strong><?php echo date('d/m/Y', strtotime($request['due_date'])); ?></strong>
+                                </p>
+                                <a href="javascript:void(0)" 
+                                   onclick="showReasonPopup('<?php echo htmlspecialchars(addslashes($request['reason_for_borrowing'])); ?>')" 
+                                   style="font-size: 0.9em; text-decoration: underline; color: var(--color-primary);">
+                                   ดูเหตุผล
+                                </a>
+                            </div>
+                            
+                            <div class="pending-card-actions">
+                                <button type="button" 
+                                        class="btn btn-borrow" 
+                                        onclick="openApprovePopup(<?php echo $request['transaction_id']; ?>)">
+                                    <i class="fas fa-check"></i> อนุมัติ
+                                </button>
+                                
+                                <button type="button" 
+                                        class="btn btn-danger" 
+                                        onclick="openRejectPopup(<?php echo $request['transaction_id']; ?>)">
+                                    <i class="fas fa-times"></i> ปฏิเสธ
+                                </button>
+                            </div>
+
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            
+            </div>
         </div>
-    </div>
 
     <div class="container">
         <h2><i class="fas fa-calendar-times" style="color: var(--color-danger);"></i> รายการที่เกินกำหนดคืน</h2>
         <div class="container-content">
             <?php if (isset($overdue_error)) echo "<p style='color: red;'>$overdue_error</p>"; ?>
-            <table>
-                <thead>
-                    <tr>
-                        <th>อุปกรณ์</th>
-                        <th>ผู้ยืม</th>
-                        <th>เบอร์โทร</th>
-                        <th>เลยกำหนด</th>
-                        <th>(รับคืน)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($overdue_items)): ?>
-                        <tr>
-                            <td colspan="5" style="text-align: center;">ไม่มีรายการที่เกินกำหนด</td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($overdue_items as $item): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($item['equipment_name']); ?></td>
-                                <td><?php echo htmlspecialchars($item['student_name'] ?? '[N/A]'); ?></td>
-                                <td><?php echo htmlspecialchars($item['phone_number'] ?? '[N/A]'); ?></td>
-                                <td style="white-space: nowrap; color: #dc3545; font-weight: bold;">
-                                    <?php echo date('d/m/Y', strtotime($item['due_date'])); ?>
-                                </td>
-                                <td>
-                                    <button type="button" 
-                                            class="btn btn-return" 
-                                            onclick="openReturnPopup(<?php echo $item['equipment_id']; ?>)">รับคืน</button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+            
+            <div class="history-list-container">
+
+                <?php if (empty($overdue_items)): ?>
+                    <div class="history-card">
+                        <p style="text-align: center; width: 100%;">ไม่มีรายการที่เกินกำหนด</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($overdue_items as $item): ?>
+                        <div class="history-card">
+                            
+                            <div class="history-card-icon">
+                                <span class="status-badge red"> <i class="fas fa-calendar-times"></i>
+                                </span>
+                            </div>
+                            
+                            <div class="history-card-info">
+                                <h4><?php echo htmlspecialchars($item['equipment_name']); ?></h4>
+                                <p>
+                                    ผู้ยืม: <strong><?php echo htmlspecialchars($item['student_name'] ?? '[N/A]'); ?></strong>
+                                </p>
+                                <p>
+                                    เบอร์โทร: <?php echo htmlspecialchars($item['phone_number'] ?? '[N/A]'); ?>
+                                </p>
+                                <p style="color: var(--color-danger); font-weight: bold;">
+                                    เลยกำหนด: <?php echo date('d/m/Y', strtotime($item['due_date'])); ?>
+                                </p>
+                            </div>
+                            
+                            <div class="pending-card-actions">
+                                <button type="button" 
+                                        class="btn btn-return" 
+                                        onclick="openReturnPopup(<?php echo $item['equipment_id']; ?>)">
+                                    <i class="fas fa-undo-alt"></i> รับคืน
+                                </button>
+                            </div>
+
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            
+            </div>
         </div>
     </div>
 

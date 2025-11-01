@@ -385,6 +385,15 @@ try {
 } catch (e) {
     console.error('Theme toggle button error:', e);
 }
+function showReasonPopup(reason) {
+    Swal.fire({
+        title: 'เหตุผลการยืม',
+        text: reason,
+        icon: 'info',
+        confirmButtonText: 'ปิด',
+        confirmButtonColor: 'var(--color-primary, #0B6623)',
+    });
+}
 </script>
 
 </body>

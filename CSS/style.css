@@ -1079,3 +1079,27 @@ body.dark-mode .footer-nav a:hover {
 /* (เมื่อ dark-mode active ให้สลับไอคอน) */
 body.dark-mode .theme-toggle-btn .fa-sun { display: inline-block; }
 body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
+
+/* =========================================
+ * (ใหม่) CSS สำหรับ Card รายการรอดำเนินการ (Mobile-First)
+ * ========================================= */
+
+.pending-card-actions {
+    display: flex;
+    flex-direction: column; /* ◀️ ให้ปุ่มเรียงแนวตั้ง */
+    gap: 0.5rem;
+    flex-shrink: 0; /* ◀️ ไม่ให้ปุ่มหดตัว */
+    width: 90px; /* ◀️ กำหนดความกว้างคงที่ */
+}
+
+.pending-card-actions .btn {
+    width: 100%; /* ให้ปุ่มกว้างเต็ม container */
+    margin-left: 0 !important; /* ลบ margin เดิม (ถ้ามี) */
+    justify-content: center; /* จัดไอคอน/ข้อความกลางปุ่ม */
+    box-sizing: border-box; /* ป้องกัน padding ทำให้ปุ่มล้น */
+}
+
+/* (ปรับปรุง) ทำให้ .history-card-info ยืดหยุ่นมากขึ้น */
+.history-card-info p {
+    line-height: 1.5; /* (เพิ่มระยะห่างบรรทัดเล็กน้อย) */
+}
