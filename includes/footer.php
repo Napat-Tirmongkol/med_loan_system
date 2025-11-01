@@ -45,6 +45,7 @@ $current_page = $current_page ?? 'index';
     <?php endif; // (จบการเช็ค Admin) ?>
 </nav>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
 // (ฟังก์ชัน "ยืม")

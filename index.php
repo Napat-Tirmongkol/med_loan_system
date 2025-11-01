@@ -98,22 +98,23 @@ include('includes/header.php');
 
 <?php if (isset($kpi_error)) echo "<p style='color: red;'>$kpi_error</p>"; ?>
 
-<div class="kpi-grid">
-    <div class="stat-card kpi-borrowed">
-        <div class="stat-card-info"><p class="title">กำลังถูกยืม</p><p class="value"><?php echo $count_borrowed; ?></p></div>
-        <div class="stat-card-icon icon-borrowed"><i class="fas fa-box-open"></i></div>
+<?php if ($count_overdue > 0): ?>
+    <div class="stat-card kpi-overdue" style="margin-bottom: 1.5rem;">
+        <div class="stat-card-info">
+            <p class="title">รายการเกินกำหนดคืน (ที่ยังไม่คืน)</p>
+            <p class="value"><?php echo $count_overdue; ?> รายการ</p>
+        </div>
+        <div class="stat-card-icon">
+            <i class="fas fa-calendar-times"></i>
+        </div>
     </div>
-    <div class="stat-card kpi-available">
-        <div class="stat-card-info"><p class="title">พร้อมใช้งาน</p><p class="value"><?php echo $count_available; ?></p></div>
-        <div class="stat-card-icon icon-available"><i class="fas fa-check-circle"></i></div>
-    </div>
-    <div class="stat-card kpi-maintenance">
-        <div class="stat-card-info"><p class="title">ซ่อมบำรุง</p><p class="value"><?php echo $count_maintenance; ?></p></div>
-        <div class="stat-card-icon icon-maintenance"><i class="fas fa-tools"></i></div>
-    </div>
-    <div class="stat-card kpi-overdue">
-        <div class="stat-card-info"><p class="title">เกินกำหนดคืน</p><p class="value"><?php echo $count_overdue; ?></p></div>
-        <div class="stat-card-icon icon-overdue"><i class="fas fa-calendar-times"></i></div>
+<?php endif; ?>
+
+
+<div class="section-card" style="margin-bottom: 1.5rem;">
+    <h2 class="section-title">ภาพรวมสถานะอุปกรณ์ทั้งหมด</h2>
+    <div style="width: 100%; max-width: 400px; margin: 0 auto;">
+        <canvas id="equipmentStatusChart"></canvas>
     </div>
 </div>
 
@@ -254,7 +255,57 @@ include('includes/header.php');
 </div>
 
 
+<script>
+// (รอให้ DOM โหลดเสร็จก่อน)
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // (1) ดึง Canvas
+    const ctx = document.getElementById('equipmentStatusChart').getContext('2d');
+    
+    // (2) ข้อมูลจาก PHP (เราจะแสดง 3 สถานะหลัก)
+    const availableCount = <?php echo $count_available; ?>;
+    const borrowedCount = <?php echo $count_borrowed; ?>;
+    const maintenanceCount = <?php echo $count_maintenance; ?>;
+
+    // (3) สร้างกราฟ
+    const equipmentChart = new Chart(ctx, {
+        type: 'pie', // (ประเภท: กราฟวงกลม)
+        data: {
+            labels: [
+                'พร้อมใช้งาน (Available)',
+                'กำลังถูกยืม (Borrowed)',
+                'ซ่อมบำรุง (Maintenance)'
+            ],
+            datasets: [{
+                label: 'จำนวน (ชิ้น)',
+                data: [availableCount, borrowedCount, maintenanceCount],
+                backgroundColor: [
+                    'rgba(22, 163, 74, 0.7)',  // สีเขียว (Available)
+                    'rgba(254, 249, 195, 0.9)', // สีเหลือง (Borrowed)
+                    'rgba(249, 98, 11, 0.7)'   // สีแดง (Maintenance)
+                ],
+                borderColor: [
+                    'rgba(22, 163, 74, 1)',
+                    'rgba(133, 77, 14, 1)', // (ใช้สี Text ของ Badge เหลือง)
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top', // (แสดงคำอธิบายด้านบน)
+                }
+            }
+        }
+    });
+});
+</script>
+
+
 <?php
 // 9. เรียกใช้ไฟล์ Footer
-include('includes/footer.php'); 
+include('includes/footer.php');
 ?>
