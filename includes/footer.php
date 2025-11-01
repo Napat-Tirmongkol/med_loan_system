@@ -58,7 +58,7 @@ function openBorrowPopup(equipmentId) {
             let borrowerOptions = '<option value="">--- กรุณาเลือกผู้ยืม ---</option>';
             if (data.borrowers.length > 0) {
                 data.borrowers.forEach(b => { 
-                    borrowerOptions += `<option value="${b.id}">${b.full_name} (${b.contact_info || 'N/A'})</option>`; 
+                    borrowerOptions += `<option value="${b.id}">${b.full_name} (${b.contact_info || 'N/A'})</option>`;
                 });
             } else {
                 borrowerOptions = '<option value="" disabled>ยังไม่มีข้อมูลผู้ใช้งานในระบบ</option>';
@@ -342,8 +342,27 @@ function openRejectPopup(transactionId) {
     });
 }
 
-// (ลบ JS ของ Hamburger ทิ้ง)
+// ( ... โค้ดสำหรับ Hamburger ... )
+const hamburgerBtn = document.getElementById('hamburgerBtn');
+const sidebar = document.querySelector('.sidebar');
+const body = document.body;
 
+if (hamburgerBtn && sidebar) {
+    hamburgerBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('sidebar-visible');
+        body.classList.toggle('sidebar-open-overlay');
+    });
+    
+    body.addEventListener('click', (event) => {
+        if (body.classList.contains('sidebar-open-overlay') && 
+            !sidebar.contains(event.target) && 
+            !hamburgerBtn.contains(event.target)) {
+            
+            sidebar.classList.remove('sidebar-visible');
+            body.classList.remove('sidebar-open-overlay');
+        }
+    });
+}
 </script>
 
 </body>

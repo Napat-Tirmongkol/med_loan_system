@@ -8,9 +8,7 @@
     <link rel="stylesheet" href="CSS/style.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body>
-
-    <header class="header"> 
+<body style="padding-bottom: 70px;"> <header class="header"> 
         <h1>MedLoan - (Admin)</h1>
         
         <div class="user-info"> สวัสดี, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
@@ -29,4 +27,4 @@
         </div>
     </header>
 
-    <main class="content" style="margin-left: 0; margin-top: 60px;">
+    <main class="content" style="margin-top: 80px;">
