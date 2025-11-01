@@ -998,10 +998,10 @@ body.dark-mode .stat-card.kpi-maintenance .stat-card-info .value { color: #fd7e1
 body.dark-mode .stat-card-icon {
     color: #ffffff; /* (ทำให้ไอคอนข้างในเป็นสีขาวเสมอ) */
 }
+
+}
 body.dark-mode .table-container .current-user-row td {
     background-color: #314155; /* (สีน้ำเงินเข้ม - Dark Mode) */
-    /* (สีตัวอักษรจะถูกสืบทอดจาก .table-container มาเป็นสีขาวเอง) */
-}
 }
 
 /* 2. (Override) ส่วนที่ใช้สีขาว/เทาอ่อน แบบ Hard-code */
