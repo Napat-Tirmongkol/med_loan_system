@@ -87,7 +87,7 @@ body {
     color: var(--color-text-light);
 }
 .user-greeting {
-    font-size: 0.9em;
+    font-size: 1em;
     text-align: right;
     white-space: nowrap; /* (ป้องกันการตัดคำในส่วนนี้) */
 }
@@ -232,9 +232,7 @@ body {
     .header h1 {
         font-size: 1.1em; /* (ลดขนาดหัวข้อ) */
     }
-    .user-greeting {
-        display: none; /* (ซ่อนคำทักทาย) */
-    }
+
     .btn-logout .logout-text {
         display: none; /* (ซ่อนข้อความ "ออกจากระบบ") */
     }
@@ -385,11 +383,12 @@ body {
     font-size: 0.85rem;
     font-weight: bold; /* (ใช้ฟอนต์ RSU Bold) */
 }
-.action-buttons .btn-danger {
+.btn-danger {
     background-color: var(--color-danger);
     color: white;
+    text-decoration: none; /* (เพิ่ม กันเหนียวสำหรับแท็ก <a>) */
 }
-.action-buttons .btn-danger:hover {
+.btn-danger:hover {
     background-color: #b91c1c;
 }
 
@@ -1134,4 +1133,169 @@ body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
 /* (ปรับปรุง) ทำให้ .history-card-info ยืดหยุ่นมากขึ้น */
 .history-card-info p {
     line-height: 1.5; /* (เพิ่มระยะห่างบรรทัดเล็กน้อย) */
+}
+/* =========================================
+ * (ใหม่) Utility Class สำหรับย่อข้อความในตาราง
+ * ========================================= */
+
+.truncate-text {
+    max-width: 40px; /* ◀️ กำหนดความกว้างสูงสุด (ปรับค่านี้ได้ตามชอบ) */
+    white-space: nowrap; /* ◀️ บังคับไม่ให้ขึ้นบรรทัดใหม่ */
+    overflow: hidden; /* ◀️ ซ่อนส่วนที่ล้น */
+    text-overflow: ellipsis; /* ◀️ แสดง ... */
+}
+
+/* * (ปรับปรุง) ทำให้ปุ่ม 'จัดการ' ในตาราง
+ * แสดงผลบนมือถือได้ดีขึ้น (เรียงเป็นแนวตั้ง)
+*/
+@media (max-width: 768px) {
+    .table-container .action-buttons {
+        flex-direction: column; /* ◀️ ให้ปุ่มเรียงแนวตั้งบนจอเล็ก */
+        align-items: stretch; /* ◀️ ยืดปุ่มให้เต็มความกว้าง */
+        gap: 0.4rem; /* ◀️ ลดระยะห่างระหว่างปุ่ม */
+    }
+    .table-container .action-buttons .btn {
+        width: 100%;
+        box-sizing: border-box; /* ◀️ ป้องกัน padding ทำปุ่มล้น */
+        justify-content: center; /* ◀️ จัดข้อความกลางปุ่ม */
+        margin-left: 0 !important; /* ◀️ ลบ margin ที่อาจค้างอยู่ */
+    }
+}
+
+/* =========================================
+ * (ใหม่) CSS สำหรับซ่อน/แสดง ตาราง/การ์ด
+ * ในหน้า manage_students.php
+ * ========================================= */
+
+/* 1. (ค่าเริ่มต้น) ซ่อน "การ์ด" ในจอใหญ่ (จอใหญ่จะใช้ตาราง) */
+.student-card-list {
+    display: none; 
+}
+
+/* 2. (ปรับปรุง) ทำให้ปุ่ม "เลื่อนขั้น" (สีเหลือง) เข้ากับดีไซน์การ์ด */
+/* (เราใช้ .pending-card-actions ที่มีอยู่) */
+.pending-card-actions .btn-promote {
+    background-color: var(--color-warning);
+    color: #333;
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: center;
+    border: none;
+    font-size: 0.85rem;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+.pending-card-actions .btn-promote:hover {
+    background-color: #e0a800;
+}
+.pending-card-actions .btn-promote i {
+    margin-right: 0.5rem;
+}
+
+
+/* 3. (สำคัญ) เมื่อหน้าจอเล็กกว่า 992px (Tablet/Mobile) */
+@media (max-width: 992px) {
+
+    /* 3.1 ซ่อน "ตาราง" */
+    .table-container.desktop-only {
+        display: none;
+    }
+
+    /* 3.2 แสดง "การ์ด" */
+    .student-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    /* 3.3 (แก้ไข) จัดการปุ่มในตารางที่ 2 และ การ์ดที่ 1 */
+    .table-container .action-buttons,
+    .student-card-list .pending-card-actions { /* ◀◀◀ (เพิ่ม selector นี้) */
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 0.4rem;
+    }
+
+    .table-container .action-buttons .btn,
+    .student-card-list .pending-card-actions .btn,     /* ◀◀◀ (เพิ่ม selector นี้) */
+    .student-card-list .pending-card-actions .btn-danger { /* ◀◀◀ (เพิ่ม selector นี้สำหรับ <a>) */
+        width: 100%;
+        box-sizing: border-box; 
+        justify-content: center; 
+        margin-left: 0 !important;
+    }
+}
+
+/* =========================================
+ * (ใหม่) CSS สำหรับปุ่มซ่อน/แสดง (Collapsible)
+ * ========================================= */
+
+/* (ปรับปรุง) .header-row ให้รองรับปุ่มใหม่ */
+.header-row {
+    position: relative;
+    cursor: pointer; /* ทำให้รู้ว่ากดได้ */
+    user-select: none; /* ป้องกันการเผลอเลือกข้อความ */
+}
+.header-row h2 {
+    margin-right: 80px; /* (เว้นที่ให้ปุ่ม) */
+}
+
+/* (ปุ่มลูกศร Dropdown) */
+.collapse-toggle-btn {
+    position: absolute;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.3s ease;
+}
+.header-row:hover .collapse-toggle-btn {
+    background-color: var(--color-page-bg);
+}
+body.dark-mode .header-row:hover .collapse-toggle-btn {
+    background-color: #374151;
+}
+
+/* (สไตล์การซ่อน/แสดง ไอคอนลูกศร) */
+.collapse-toggle-btn .fa-chevron-up { display: none; }
+.collapse-toggle-btn .fa-chevron-down { display: inline-block; }
+
+.collapse-toggle-btn.collapsed {
+    transform: translateY(-50%) rotate(-180deg);
+}
+.collapse-toggle-btn.collapsed .fa-chevron-up { display: inline-block; }
+.collapse-toggle-btn.collapsed .fa-chevron-down { display: none; }
+
+
+/* (เนื้อหาที่จะถูกซ่อน) */
+.collapsible-content {
+    /* (ใช้ max-height ในการทำ animation) */
+    max-height: 10000px; /* (ค่าเยอะๆ เผื่อไว้) */
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+    /* (เพิ่ม padding ให้เนื้อหาไม่ติดกับหัวข้อ) */
+    padding-top: 1.5rem;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in, padding 0.3s ease-in;
+}
+
+/* (ปรับปรุง) ย้ายปุ่ม "เพิ่มผู้ใช้งาน" ออกจาก Header Row */
+.add-user-button-wrapper {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
 }

@@ -394,6 +394,40 @@ function showReasonPopup(reason) {
         confirmButtonColor: 'var(--color-primary, #0B6623)',
     });
 }
+// (วางต่อจากโค้ด Theme Toggle)
+
+// =========================================
+// (ใหม่) Logic สำหรับปุ่ม Collapse (ซ่อน/แสดง)
+// =========================================
+document.addEventListener('DOMContentLoaded', function() {
+    // เลือก .header-row ทั้งหมดที่มี data-target
+    const toggles = document.querySelectorAll('.header-row[data-target]');
+
+    toggles.forEach(toggle => {
+        const targetId = toggle.getAttribute('data-target');
+        const content = document.querySelector(targetId);
+        const toggleBtn = toggle.querySelector('.collapse-toggle-btn');
+
+        if (content) {
+            toggle.addEventListener('click', function(e) {
+                // (ป้องกันการคลิกที่ปุ่มย่อยๆ ภายใน header)
+                if (e.target.closest('button, a')) {
+                    // ถ้าคลิกที่ปุ่ม "เพิ่ม" หรือ "ลูกศร" (ปุ่มจริงๆ)
+                    // ให้เช็คว่าเป็นปุ่มลูกศรหรือไม่
+                    if (!e.target.closest('.collapse-toggle-btn')) {
+                        return; // ถ้าไม่ใช่ปุ่มลูกศร (เช่น ปุ่ม "เพิ่ม") ให้หยุด ไม่ต้องซ่อน/แสดง
+                    }
+                }
+                
+                // สลับคลาส 'collapsed'
+                content.classList.toggle('collapsed');
+                if (toggleBtn) {
+                    toggleBtn.classList.toggle('collapsed');
+                }
+            });
+        }
+    });
+});
 </script>
 
 </body>

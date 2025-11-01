@@ -82,167 +82,239 @@ include('includes/header.php');
     </div>
 <?php endif; ?>
 
-<div class="header-row">
+<div class="header-row" data-target="#userSectionContent">
     <h2><i class="fas fa-users"></i> 👥 จัดการผู้ใช้งาน (User)</h2>
-    <button class="add-btn" onclick="openAddStudentPopup()" style="background-color: var(--color-info);">
-        <i class="fas fa-plus"></i> เพิ่มผู้ใช้งาน (โดย Admin)
+    <button type="button" class="collapse-toggle-btn">
+        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-up"></i>
     </button>
 </div>
 
-<div class="table-container" style="margin-bottom: 2rem;">
-    <?php if (isset($student_error)) echo "<p style='color: red; padding: 15px;'>$student_error</p>"; ?>
-    <table>
-        <thead>
-            <tr>
-                <th>ชื่อ-สกุล</th>
-                <th>รหัสผู้ใช้งาน/บุคลากร</th>
-                <th>สถานะภาพ</th>
-                <th>เบอร์โทร</th>
-                <th>ลงทะเบียนโดย</th>
-                <th>จัดการ</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($students)): ?>
+<div id="userSectionContent" class="collapsible-content">
+
+    <div class="add-user-button-wrapper">
+        <button class="add-btn" onclick="openAddStudentPopup()" style="background-color: var(--color-info);">
+            <i class="fas fa-plus"></i> เพิ่มผู้ใช้งาน (โดย Admin)
+        </button>
+    </div>
+
+    <div class="table-container desktop-only" style="margin-bottom: 2rem;">
+        <?php if (isset($student_error)) echo "<p style='color: red; padding: 15px;'>$student_error</p>"; ?>
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> 
+                    <th>ชื่อ-สกุล</th>
+                    <th style="width: 20%;">รหัสผู้ใช้งาน/บุคลากร</th>
+                    <th>สถานะภาพ</th>
+                    <th>เบอร์โทร</th>
+                    <th>ลงทะเบียนโดย</th>
+                    <th>จัดการ</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($students as $student): ?>
+            </thead>
+            <tbody>
+                <?php if (empty($students)): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($student['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> 
-                        <td>
-                            <?php 
+                        <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> 
+                    </tr>
+                <?php else: ?>
+                    <?php foreach ($students as $student): ?>
+                        <tr>
+                            <td class="truncate-text" title="<?php echo htmlspecialchars($student['full_name']); ?>">
+                                <?php echo htmlspecialchars($student['full_name']); ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> 
+                            <td>
+                                <?php 
+                                    echo htmlspecialchars($student['status']); 
+                                    if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
+                                ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
+                            <td>
+                                <?php if ($student['line_user_id']): ?>
+                                    <span style="color: #00B900; font-weight: bold;">LINE</span>
+                                <?php else: ?>
+                                    <span style="color: #6c757d;">Admin</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="action-buttons">
+                                <button type="button"
+                                        class="btn btn-manage"
+                                        onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">ดู/แก้ไข</button>
+                                
+                                <?php if ($student['linked_user_id']): ?>
+                                    <button type="button" 
+                                            class="btn btn-danger" 
+                                            onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
+                                        <i class="fas fa-user-minus"></i> ลดสิทธิ์
+                                    </button>
+                                
+                                <?php else: ?>
+                                    <?php if (!empty($student['line_user_id'])): ?>
+                                        <button type="button" 
+                                                class="btn" 
+                                                style="background-color: #ffc107; color: #333;" 
+                                                onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
+                                            <i class="fas fa-user-shield"></i> เลื่อนขั้น
+                                        </button>
+                                    <?php endif; ?>
+                                    
+                                    <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
+                                       class="btn btn-danger"
+                                       style="margin-left: 5px;" 
+                                       onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="student-card-list">
+        <?php if (isset($student_error)) echo "<p style='color: red; padding: 15px;'>$student_error</p>"; ?>
+        
+        <?php if (empty($students)): ?>
+            <div class="history-card">
+                <p style="text-align: center; width: 100%;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($students as $student): ?>
+                <div class="history-card">
+                    <div class="history-card-icon">
+                        <?php if ($student['line_user_id']): ?>
+                            <span class="status-badge green" title="ลงทะเบียนผ่าน LINE">
+                                <i class="fab fa-line" style="font-size: 1.5rem;"></i>
+                            </span>
+                        <?php else: ?>
+                            <span class="status-badge grey" title="Admin เพิ่มเอง">
+                                <i class="fas fa-user-shield"></i>
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="history-card-info">
+                        <h4 class="truncate-text" title="<?php echo htmlspecialchars($student['full_name']); ?>">
+                            <?php echo htmlspecialchars($student['full_name']); ?>
+                        </h4>
+                        <p>
+                            รหัส: <?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?>
+                        </p>
+                        <p style="font-size: 0.9em;">
+                            สถานะภาพ: <?php 
                                 echo htmlspecialchars($student['status']); 
                                 if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
                             ?>
-                        </td>
-                        <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
-                        <td>
-                            <?php if ($student['line_user_id']): ?>
-                                <span style="color: #00B900; font-weight: bold;">LINE</span>
-                            <?php else: ?>
-                                <span style="color: #6c757d;">Admin</span>
-                            <?php endif; ?>
-                        </td>
+                        </p>
+                    </div>
+                    
+                    <div class="pending-card-actions">
+                        <button type="button"
+                                class="btn btn-manage"
+                                onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">
+                            <i class="fas fa-search"></i> ดู/แก้ไข
+                        </button>
                         
-                        <td class="action-buttons">
-                            
-                            <button type="button"
-                                    class="btn btn-manage"
-                                    onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">แก้ไข</button>
-                            
-                            <?php if ($student['linked_user_id']): ?>
-                                <button type="button" 
-                                        class="btn btn-danger" 
-                                        onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
-                                    <i class="fas fa-user-minus"></i> ลดสิทธิ์
-                                </button>
-                            
-                            <?php else: ?>
-                                <?php if (!empty($student['line_user_id'])): ?>
-                                    <button type="button" 
-                                            class="btn" 
-                                            style="background-color: #ffc107; color: #333;" 
-                                            onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
-                                        <i class="fas fa-user-shield"></i> เลื่อนขั้น
-                                    </button>
-                                <?php endif; ?>
-                                
-                                <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
-                                   class="btn btn-danger"
-                                   style="margin-left: 5px;" 
-                                   onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
-
-                            <?php endif; ?>
-                        </td>
-                        </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
-
-
-<div class="header-row">
+                        <?php if (!$student['linked_user_id']): ?>
+                            <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
+                               class="btn btn-danger"
+                               onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">
+                               <i class="fas fa-trash"></i> ลบ
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+</div> <div class="header-row" data-target="#staffSectionContent">
     <h2><i class="fas fa-user-shield"></i> 🛡️ จัดการบัญชีพนักงาน (Admin/Employee)</h2>
-    <button class="add-btn" onclick="openAddStaffPopup()">
-        <i class="fas fa-plus"></i> เพิ่มบัญชีพนักงาน
+    <button type="button" class="collapse-toggle-btn">
+        <i class="fas fa-chevron-down"></i>
+        <i class="fas fa-chevron-up"></i>
     </button>
 </div>
 
-<div class="table-container">
-    <?php if (isset($staff_error)) echo "<p style='color: red; padding: 15px;'>$staff_error</p>"; ?>
-    <table>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>ชื่อ-สกุล</th>
-                <th>สิทธิ์ (Role)</th>
-                <th>บัญชีที่เชื่อมโยง (LINE)</th>
-                <th>จัดการ</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php if (empty($staff_accounts)): ?>
+<div id="staffSectionContent" class="collapsible-content">
+
+    <div class="add-user-button-wrapper">
+        <button class="add-btn" onclick="openAddStaffPopup()">
+            <i class="fas fa-plus"></i> เพิ่มบัญชีพนักงาน
+        </button>
+    </div>
+
+    <div class="table-container">
+        <?php if (isset($staff_error)) echo "<p style='color: red; padding: 15px;'>$staff_error</p>"; ?>
+        <table>
+            <thead>
                 <tr>
-                    <td colspan="5" style="text-align: center;">ไม่มีข้อมูลบัญชีพนักงาน</td>
+                    <th>Username</th>
+                    <th>ชื่อ-สกุล</th>
+                    <th>สิทธิ์ (Role)</th>
+                    <th>บัญชีที่เชื่อมโยง (LINE)</th>
+                    <th>จัดการ</th>
                 </tr>
-            <?php else: ?>
-                <?php foreach ($staff_accounts as $staff): ?>
-                    <tr style="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'background-color: #e6f7ff;'; ?>">
-                        <td>
-                            <?php echo htmlspecialchars($staff['username']); ?>
-                            <?php if ($staff['id'] == $_SESSION['user_id']) echo ' <strong>(คุณ)</strong>'; ?>
-                        </td>
-                        <td><?php echo htmlspecialchars($staff['full_name']); ?></td>
-                        <td>
-                            <?php if ($staff['role'] == 'admin'): ?>
-                                <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
-                            <?php else: ?>
-                                <span style="color: var(--color-primary);">Employee</span>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php if ($staff['linked_line_user_id']): ?>
-                                <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
-                                    <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
-                                </span>
-                            <?php else: ?>
-                                <span style="color: #6c757d;">(ไม่มี)</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="action-buttons">
-                            <button type="button"
-                                class="btn btn-manage"
-                                onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">แก้ไข</button>
-
-                            <?php if ($staff['id'] != $_SESSION['user_id']): ?>
-                                <?php if ($staff['linked_line_user_id']): ?>
-                                    <button type="button"
-                                        class="btn btn-danger"
-                                        onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                        <i class="fas fa-user-minus"></i> ลดสิทธิ์
-                                    </button>
-                                <?php else: ?>
-                                    <button type="button"
-                                        class="btn btn-danger"
-                                        onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                        <i class="fas fa-trash"></i> ลบบัญชี
-                                    </button>
-                                <?php endif; ?>
-                            <?php endif; ?>
-                        </td>
+            </thead>
+            <tbody>
+                <?php if (empty($staff_accounts)): ?>
+                    <tr>
+                        <td colspan="5" style="text-align: center;">ไม่มีข้อมูลบัญชีพนักงาน</td>
                     </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
-</div>
+                <?php else: ?>
+                    <?php foreach ($staff_accounts as $staff): ?>
+                        <tr style="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'background-color: #e6f7ff;'; ?>">
+                            <td>
+                                <?php echo htmlspecialchars($staff['username']); ?>
+                                <?php if ($staff['id'] == $_SESSION['user_id']) echo ' <strong>(คุณ)</strong>'; ?>
+                            </td>
+                            <td class="truncate-text" title="<?php echo htmlspecialchars($staff['full_name']); ?>">
+                                <?php echo htmlspecialchars($staff['full_name']); ?>
+                            </td>
+                            <td>
+                                <?php if ($staff['role'] == 'admin'): ?>
+                                    <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
+                                <?php else: ?>
+                                    <span style="color: var(--color-primary);">Employee</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($staff['linked_line_user_id']): ?>
+                                    <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
+                                        <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span style="color: #6c757d;">(ไม่มี)</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="action-buttons">
+                                <button type="button"
+                                    class="btn btn-manage"
+                                    onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">ดู/แก้ไข</button>
 
-
-<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                <?php if ($staff['id'] != $_SESSION['user_id']): ?>
+                                    <?php if ($staff['linked_line_user_id']): ?>
+                                        <button type="button"
+                                            class="btn btn-danger"
+                                            onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                            <i class="fas fa-user-minus"></i> ลดสิทธิ์
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button"
+                                            class="btn btn-danger"
+                                            onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                            <i class="fas fa-trash"></i> ลบบัญชี
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div> <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // (JS: "student" -> "user")
     function confirmDeleteStudent(event, id) {
