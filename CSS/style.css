@@ -917,3 +917,19 @@ body {
 .history-card-status {
     flex-shrink: 0; /* ไม่หดตัว */
 }
+
+/* =========================================
+ * (ใหม่) Animation สำหรับฟอร์ม (Shake)
+ * ========================================= */
+
+.shake-animation {
+    /* (แอนิเมชั่น: ชื่อ 'shake', 0.5 วินาที, linear) */
+    animation: shake 0.5s linear;
+}
+
+/* (กำหนดท่าทางของ 'shake') */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } /* สั่นไปซ้าย */
+    20%, 40%, 60%, 80% { transform: translateX(5px); } /* สั่นไปขวา */
+}
