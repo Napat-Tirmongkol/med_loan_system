@@ -9,7 +9,7 @@ $MASTER_TEST_CODE = "testmode123";
 
 // (สำคัญ!) ตั้งค่า ID ของนักศึกษาในฐานข้อมูล ที่คุณต้องการให้ Tester สวมบทบาท
 // (ผมจะใช้ ID 9 "NAPATO" จากฐานข้อมูล ของคุณเป็นตัวอย่าง)
-$TEST_STUDENT_ID_TO_USE = 13;
+$TEST_STUDENT_ID_TO_USE = 3;
 
 
 // 1. ตรวจสอบว่าส่งแบบ POST

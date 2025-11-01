@@ -364,6 +364,27 @@ if (hamburgerBtn && sidebar) {
         }
     });
 }
+try {
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            // (ตรวจสอบจาก body class ที่ script ใน header อาจจะใส่ไว้)
+            if (document.body.classList.contains('dark-mode')) {
+                // --- (จากมืด -> ไปสว่าง) ---
+                document.documentElement.classList.remove('dark-mode');
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light');
+            } else {
+                // --- (จากสว่าง -> ไปมืด) ---
+                document.documentElement.classList.add('dark-mode');
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark');
+            }
+        });
+    }
+} catch (e) {
+    console.error('Theme toggle button error:', e);
+}
 </script>
 
 </body>

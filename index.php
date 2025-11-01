@@ -297,11 +297,38 @@ document.addEventListener("DOMContentLoaded", function() {
             plugins: {
                 legend: {
                     position: 'top', // (แสดงคำอธิบายด้านบน)
+                    
+                    // ( ◀️ เพิ่มส่วนนี้เข้าไปครับ )
+                    labels: {
+                        // (เช็คว่า body มี class 'dark-mode' หรือไม่)
+                        color: document.body.classList.contains('dark-mode') ? '#E5E7EB' : '#6C757D'
+                    }
+                    // ( ◀️ จบส่วนที่เพิ่ม )
                 }
             }
         }
     });
-});
+    try {
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', function() {
+                // (รอ 10ms ให้ CSS เปลี่ยนก่อน)
+                setTimeout(() => {
+                    const isDarkMode = document.body.classList.contains('dark-mode');
+                    const newColor = isDarkMode ? '#E5E7EB' : '#6C757D';
+                    
+                    // (สั่งให้กราฟอัปเดตสีตัวอักษร)
+                    if (equipmentChart) {
+                        equipmentChart.options.plugins.legend.labels.color = newColor;
+                        equipmentChart.update(); // (สั่งให้กราฟวาดใหม่)
+                    }
+                }, 10); 
+            });
+        }
+    } catch (e) {
+        console.error('Chart theme toggle error:', e);
+    }
+    });
 </script>
 
 

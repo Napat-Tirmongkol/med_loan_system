@@ -164,8 +164,8 @@ body {
     justify-content: space-between;
     align-items: center;
 }
-.stat-card-info .title { margin: 0; font-size: 0.9em; color: #555; font-weight: bold; }
-.stat-card-info .value { margin: 5px 0 0 0; font-size: 2.2em; color: #333; font-weight: bold; }
+.stat-card-info .title { margin: 0; font-size: 0.9em; color: var(--color-text-muted); font-weight: bold; }
+.stat-card-info .value { margin: 5px 0 0 0; font-size: 2.2em; color: var(--color-text-dark); font-weight: bold; }
 .stat-card-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.5em; color: #ffffff; }
 .stat-card.kpi-borrowed .stat-card-info .value { color: var(--color-success); }
 .stat-card.kpi-borrowed .stat-card-icon { background-color: var(--color-success); }
@@ -399,7 +399,7 @@ body {
 .section-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-text-dark); /* <--- แก้ไขบรรทัดนี้ครับ */
   margin-top: 0; /* (ลบ margin เดิม) */
   margin-bottom: 0.75rem;
 }
@@ -932,3 +932,150 @@ body {
     height: 16px;
     border-radius: 4px;
 }
+/* =========================================
+ * (ใหม่) DARK MODE STYLES (Toggleable)
+ * ========================================= */
+
+body.dark-mode {
+    /* 1. (สำคัญ) สลับสีพื้นฐานผ่าน CSS Variables */
+    --color-page-bg: #1f2937;       /* (จากเทาอ่อน -> เทาเข้ม) */
+    --color-content-bg: #2d3748;    /* (จากขาว -> เทารอง) */
+    --color-text-dark: #e5e7eb;      /* (จากเทาเข้ม -> เทาอ่อน) */
+    --color-text-muted: #9ca3af;     /* (จากเทากลาง -> เทาสว่าง) */
+    --border-color: #4b5563;        /* (จากเทาอ่อน -> เทากลาง) */
+    --box-shadow-main: 0 2px 8px rgba(0,0,0,0.2); /* (เงาเข้มขึ้นเล็กน้อย) */
+    /* 4.5 (Override) สีตัวอักษรใน KPI Card */
+body.dark-mode .stat-card-info .title {
+    color: var(--color-text-muted); /* (เปลี่ยนจาก #555 เป็นสีเทาสว่าง) */
+}
+
+body.dark-mode .stat-card-info .value {
+    color: var(--color-text-dark); /* (เปลี่ยนค่า default จาก #333 เป็นสีสว่าง) */
+}
+
+/* (คงสีของ Badge แต่เปลี่ยนสีข้อความ) */
+body.dark-mode .stat-card.kpi-borrowed .stat-card-info .value { color: var(--color-success); }
+body.dark-mode .stat-card.kpi-available .stat-card-info .value { color: var(--color-primary); }
+body.dark-mode .stat-card.kpi-overdue .stat-card-info .value { color: var(--color-danger); } 
+body.dark-mode .stat-card.kpi-maintenance .stat-card-info .value { color: #fd7e14; }
+
+/* (เปลี่ยนสีไอคอนวงกลม) */
+body.dark-mode .stat-card-icon {
+    color: #ffffff; /* (ทำให้ไอคอนข้างในเป็นสีขาวเสมอ) */
+}
+
+}
+
+/* 2. (Override) ส่วนที่ใช้สีขาว/เทาอ่อน แบบ Hard-code */
+body.dark-mode .container h2,
+body.dark-mode .filter-row,
+body.dark-mode .header-row,
+body.dark-mode .table-container,
+body.dark-mode .section-card,
+body.dark-mode .equipment-card,
+body.dark-mode .history-card,
+body.dark-mode #search-results-container,
+body.dark-mode .login-container, /* (จาก login.php) */
+body.dark-mode .profile-container, /* (จาก create_profile.php) */
+body.dark-mode .login-choice-container, /* (จาก line_login.php) */
+body.dark-mode .footer-nav {
+    background: var(--color-content-bg);
+    color: var(--color-text-dark);
+}
+
+/* 3. (Override) ตารางและฟอร์ม */
+body.dark-mode .table-container th {
+    background: #374151; /* (สีหัวตารางให้เข้มกว่า content) */
+}
+
+body.dark-mode .filter-row input, 
+body.dark-mode .filter-row select,
+body.dark-mode .form-group input, 
+body.dark-mode .form-group select, 
+body.dark-mode .form-group textarea, /* (จาก create_profile.php) */
+body.dark-mode .login-container input[type="text"], 
+body.dark-mode .login-container input[type="password"] /* (จาก login.php) */
+{
+    background-color: #374151;
+    border-color: #4b5563;
+    color: var(--color-text-dark); /* (สีตัวอักษรเวลาพิมพ์) */
+}
+
+/* 4. (Override) ส่วนประกอบย่อยๆ */
+body.dark-mode .activity-item {
+    background-color: #374151;
+    border-color: #4b5563;
+}
+
+body.dark-mode .equipment-card-image-placeholder,
+body.dark-mode .search-result-image-placeholder {
+    background-color: #374151;
+    color: #6b7280;
+}
+
+/* 5. (Override) สลับสี Badge สถานะทั้งหมด */
+body.dark-mode .status-badge.available,
+body.dark-mode .status-badge.returned,
+body.dark-mode .status-badge.green {
+    background: #166534; /* (สีเขียวเข้ม) */
+    color: #dcfce7; /* (สีเขียวอ่อน) */
+}
+body.dark-mode .status-badge.borrowed,
+body.dark-mode .status-badge.pending,
+body.dark-mode .status-badge.yellow {
+    background: #854d0e; /* (สีเหลืองเข้ม) */
+    color: #fef9c3; /* (สีเหลืองอ่อน) */
+}
+body.dark-mode .status-badge.maintenance,
+body.dark-mode .status-badge.overdue,
+body.dark-mode .status-badge.red {
+    background: #991b1b; /* (สีแดงเข้ม) */
+    color: #fee2e2; /* (สีแดงอ่อน) */
+}
+body.dark-mode .status-badge.borrowed-ok,
+body.dark-mode .status-badge.blue {
+    background: #1e40af; /* (สีน้ำเงินเข้ม) */
+    color: #dbeafe; /* (สีน้ำเงินอ่อน) */
+}
+body.dark-mode .status-badge.rejected,
+body.dark-mode .status-badge.grey {
+    background: #4b5563; /* (สีเทาเข้ม) */
+    color: #e5e7eb; /* (สีเทาอ่อน) */
+}
+
+/* 6. (Override) สีลิงก์ใน Footer Nav */
+body.dark-mode .footer-nav a {
+    color: var(--color-text-muted);
+}
+body.dark-mode .footer-nav a.active {
+    color: var(--color-primary); /* (สีเขียวยังสว่างและเด่นอยู่) */
+}
+body.dark-mode .footer-nav a:hover {
+    background-color: #374151; /* (เข้มขึ้นนิดนึงเมื่อ Hover) */
+}
+
+/* (เพิ่ม) 7. CSS สำหรับปุ่ม Toggle */
+.theme-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-light); /* (สีไอคอน) */
+    cursor: pointer;
+    font-size: 1.25rem;
+    padding: 5px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+.theme-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+/* (ซ่อนไอคอนที่ไม่ active) */
+.theme-toggle-btn .fa-sun { display: none; }
+.theme-toggle-btn .fa-moon { display: inline-block; }
+/* (เมื่อ dark-mode active ให้สลับไอคอน) */
+body.dark-mode .theme-toggle-btn .fa-sun { display: inline-block; }
+body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
