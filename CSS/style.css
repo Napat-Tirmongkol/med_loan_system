@@ -352,6 +352,9 @@ body {
 .table-container tr:last-child td {
     border-bottom: none;
 }
+.table-container .current-user-row td {
+    background-color: #e6f7ff; /* (สีฟ้าอ่อน - Light Mode) */
+}
 
 /* (ข้อ 5) Status Badge */
 .status-badge {
@@ -976,6 +979,7 @@ body.dark-mode {
     --border-color: #4b5563;        /* (จากเทาอ่อน -> เทากลาง) */
     --box-shadow-main: 0 2px 8px rgba(0,0,0,0.2); /* (เงาเข้มขึ้นเล็กน้อย) */
     /* 4.5 (Override) สีตัวอักษรใน KPI Card */
+    
 body.dark-mode .stat-card-info .title {
     color: var(--color-text-muted); /* (เปลี่ยนจาก #555 เป็นสีเทาสว่าง) */
 }
@@ -994,7 +998,10 @@ body.dark-mode .stat-card.kpi-maintenance .stat-card-info .value { color: #fd7e1
 body.dark-mode .stat-card-icon {
     color: #ffffff; /* (ทำให้ไอคอนข้างในเป็นสีขาวเสมอ) */
 }
-
+body.dark-mode .table-container .current-user-row td {
+    background-color: #314155; /* (สีน้ำเงินเข้ม - Dark Mode) */
+    /* (สีตัวอักษรจะถูกสืบทอดจาก .table-container มาเป็นสีขาวเอง) */
+}
 }
 
 /* 2. (Override) ส่วนที่ใช้สีขาว/เทาอ่อน แบบ Hard-code */

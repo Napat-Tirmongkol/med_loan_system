@@ -263,7 +263,7 @@ include('includes/header.php');
                     </tr>
                 <?php else: ?>
                     <?php foreach ($staff_accounts as $staff): ?>
-                        <tr style="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'background-color: #e6f7ff;'; ?>">
+                    <tr class="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'current-user-row'; ?>">
                             <td>
                                 <?php echo htmlspecialchars($staff['username']); ?>
                                 <?php if ($staff['id'] == $_SESSION['user_id']) echo ' <strong>(คุณ)</strong>'; ?>
