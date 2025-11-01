@@ -38,20 +38,27 @@
         
         <div class="user-info"> 
             
+            <div class="user-greeting">
+                สวัสดี, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
+                (<?php 
+                    if ($_SESSION['role'] == 'admin') {
+                        echo '<span style="color: var(--color-warning); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>';
+                    } elseif ($_SESSION['role'] == 'employee') {
+                        echo '<span style="color: #B7E5CD;">Employee</span>';
+                    } else {
+                        echo htmlspecialchars($_SESSION['role']);
+                    }
+                ?>)
+            </div>
+
             <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="สลับโหมด">
-                <i class="fas fa-moon"></i> <i class="fas fa-sun"></i>  </button>
-            สวัสดี, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
-            (<?php 
-                if ($_SESSION['role'] == 'admin') {
-                    echo '<span style="color: var(--color-warning); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>';
-                } elseif ($_SESSION['role'] == 'employee') {
-                    echo '<span style="color: #B7E5CD;">Employee</span>';
-                } else {
-                    echo htmlspecialchars($_SESSION['role']);
-                }
-            ?>)
-            <a href="logout.php" class="btn btn-logout">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </button>
+            
+            <a href="logout.php" class="btn btn-logout" title="ออกจากระบบ">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span class="logout-text">ออกจากระบบ</span>
             </a>
         </div>
     </header>

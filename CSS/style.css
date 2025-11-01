@@ -80,6 +80,22 @@ body {
     font-size: 1.5em;
 }
 
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* (กำหนดระยะห่างที่นี่) */
+    color: var(--color-text-light);
+}
+.user-greeting {
+    font-size: 0.9em;
+    text-align: right;
+    white-space: nowrap; /* (ป้องกันการตัดคำในส่วนนี้) */
+}
+.btn-logout .logout-text {
+    display: inline-block; /* (ค่าเริ่มต้น: แสดงข้อความ) */
+}
+/* (จบส่วนที่เพิ่มใหม่) */
+
 .content {
     margin-top: 60px;
     /* margin-left: 260px; */ /* ◀️ ลบออก */
@@ -202,13 +218,29 @@ body {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .dashboard-grid { grid-template-columns: 1fr; }
     .header h1 { font-size: 1.2em; }
-    .header .user-info { font-size: 0.8em; gap: 10px; }
+    .header .user-info { font-size: 0.8em; }
     .btn-logout { padding: 6px 12px; font-size: 0.8em; }
 }
 @media (max-width: 576px) {
     .kpi-grid { grid-template-columns: 1fr; }
     .header { padding: 10px 15px; }
     .content { margin-top: 50px; }
+}
+
+/* (เพิ่ม) ซ่อนข้อความใน Header เมื่อจอเล็ก */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.1em; /* (ลดขนาดหัวข้อ) */
+    }
+    .user-greeting {
+        display: none; /* (ซ่อนคำทักทาย) */
+    }
+    .btn-logout .logout-text {
+        display: none; /* (ซ่อนข้อความ "ออกจากระบบ") */
+    }
+    .btn-logout {
+        padding: 8px 10px; /* (ปรับขนาดปุ่มให้เล็กลง) */
+    }
 }
 
 
