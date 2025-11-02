@@ -24,6 +24,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 7. ตรวจสอบว่า: (1) เจอผู้ใช้ และ (2) รหัสผ่านถูกต้อง
         if ($user && password_verify($password, $user['password_hash'])) {
 
+        // (ใหม่) 7.1 ตรวจสอบว่าบัญชีถูกระงับหรือไม่
+        if (isset($user['account_status']) && $user['account_status'] == 'disabled') {
+            // รหัสถูก แต่บัญชีถูกระงับ
+            header("Location: login.php?error=disabled");
+            exit;
+        }
+
             // 8. Log in สำเร็จ! "แจกบัตรพนักงาน"
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['full_name'] = $user['full_name'];

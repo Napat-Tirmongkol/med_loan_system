@@ -76,7 +76,9 @@ try {
 
     if ($staff_user) {
         // --- สถานการณ์ 0: เจอ! (เป็นพนักงาน/Admin) ---
-        
+        if (isset($staff_user['account_status']) && $staff_user['account_status'] == 'disabled') {
+        die_with_error('บัญชีพนักงานของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อผู้ดูแลระบบ');
+    }
         // สร้าง Session "พนักงาน"
         $_SESSION['user_id'] = $staff_user['id'];
         $_SESSION['full_name'] = $staff_user['full_name'];

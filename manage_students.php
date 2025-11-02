@@ -28,9 +28,9 @@ try {
 // 4. (Query ที่ 2) ดึงข้อมูลพนักงาน (med_users)
 try {
     $sql_staff = "SELECT 
-                    u.id, u.username, u.full_name, u.role, u.linked_line_user_id,
-                    s.full_name as linked_student_name
-                  FROM med_users u
+                u.id, u.username, u.full_name, u.role, u.linked_line_user_id, u.account_status,
+                s.full_name as linked_student_name
+              FROM med_users u
                   LEFT JOIN med_students s ON u.linked_line_user_id = s.line_user_id
                   ORDER BY u.role ASC, u.username ASC";
     $stmt_staff = $pdo->prepare($sql_staff);
@@ -114,7 +114,7 @@ include('includes/header.php');
             <tbody>
                 <?php if (empty($students)): ?>
                     <tr>
-                        <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td> 
+                        <td colspan="6" style="text-align: center;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($students as $student): ?>
@@ -122,11 +122,13 @@ include('includes/header.php');
                             <td class="truncate-text" title="<?php echo htmlspecialchars($student['full_name']); ?>">
                                 <?php echo htmlspecialchars($student['full_name']); ?>
                             </td>
-                            <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td> 
+                            <td><?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?></td>
                             <td>
-                                <?php 
-                                    echo htmlspecialchars($student['status']); 
-                                    if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
+                                <?php
+                                echo htmlspecialchars($student['status']);
+                                if ($student['status'] == 'other') {
+                                    echo ' (' . htmlspecialchars($student['status_other']) . ')';
+                                }
                                 ?>
                             </td>
                             <td><?php echo htmlspecialchars($student['phone_number'] ?? '-'); ?></td>
@@ -139,30 +141,30 @@ include('includes/header.php');
                             </td>
                             <td class="action-buttons">
                                 <button type="button"
-                                        class="btn btn-manage"
-                                        onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">ดู/แก้ไข</button>
-                                
+                                    class="btn btn-manage"
+                                    onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">ดู/แก้ไข</button>
+
                                 <?php if ($student['linked_user_id']): ?>
-                                    <button type="button" 
-                                            class="btn btn-danger" 
-                                            onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
+                                    <button type="button"
+                                        class="btn btn-danger"
+                                        onclick="confirmDemote(<?php echo $student['linked_user_id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>')">
                                         <i class="fas fa-user-minus"></i> ลดสิทธิ์
                                     </button>
-                                
+
                                 <?php else: ?>
                                     <?php if (!empty($student['line_user_id'])): ?>
-                                        <button type="button" 
-                                                class="btn" 
-                                                style="background-color: #ffc107; color: #333;" 
-                                                onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
+                                        <button type="button"
+                                            class="btn"
+                                            style="background-color: #ffc107; color: #333;"
+                                            onclick="openPromotePopup(<?php echo $student['id']; ?>, '<?php echo htmlspecialchars(addslashes($student['full_name'])); ?>', '<?php echo htmlspecialchars(addslashes($student['line_user_id'])); ?>')">
                                             <i class="fas fa-user-shield"></i> เลื่อนขั้น
                                         </button>
                                     <?php endif; ?>
-                                    
+
                                     <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
-                                       class="btn btn-danger"
-                                       style="margin-left: 5px;" 
-                                       onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
+                                        class="btn btn-danger"
+                                        style="margin-left: 5px;"
+                                        onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -174,7 +176,7 @@ include('includes/header.php');
 
     <div class="student-card-list">
         <?php if (isset($student_error)) echo "<p style='color: red; padding: 15px;'>$student_error</p>"; ?>
-        
+
         <?php if (empty($students)): ?>
             <div class="history-card">
                 <p style="text-align: center; width: 100%;">ยังไม่มีข้อมูลผู้ใช้งานในระบบ</p>
@@ -193,7 +195,7 @@ include('includes/header.php');
                             </span>
                         <?php endif; ?>
                     </div>
-                    
+
                     <div class="history-card-info">
                         <h4 class="truncate-text" title="<?php echo htmlspecialchars($student['full_name']); ?>">
                             <?php echo htmlspecialchars($student['full_name']); ?>
@@ -202,25 +204,27 @@ include('includes/header.php');
                             รหัส: <?php echo htmlspecialchars($student['student_personnel_id'] ?? '-'); ?>
                         </p>
                         <p style="font-size: 0.9em;">
-                            สถานะภาพ: <?php 
-                                echo htmlspecialchars($student['status']); 
-                                if($student['status'] == 'other') { echo ' (' . htmlspecialchars($student['status_other']) . ')'; }
-                            ?>
+                            สถานะภาพ: <?php
+                                        echo htmlspecialchars($student['status']);
+                                        if ($student['status'] == 'other') {
+                                            echo ' (' . htmlspecialchars($student['status_other']) . ')';
+                                        }
+                                        ?>
                         </p>
                     </div>
-                    
+
                     <div class="pending-card-actions">
                         <button type="button"
-                                class="btn btn-manage"
-                                onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">
+                            class="btn btn-manage"
+                            onclick="openEditStudentPopup(<?php echo $student['id']; ?>)">
                             <i class="fas fa-search"></i> ดู/แก้ไข
                         </button>
-                        
+
                         <?php if (!$student['linked_user_id']): ?>
                             <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
-                               class="btn btn-danger"
-                               onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">
-                               <i class="fas fa-trash"></i> ลบ
+                                class="btn btn-danger"
+                                onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">
+                                <i class="fas fa-trash"></i> ลบ
                             </a>
                         <?php endif; ?>
                     </div>
@@ -228,7 +232,8 @@ include('includes/header.php');
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
-</div> <div class="header-row" data-target="#staffSectionContent">
+</div>
+<div class="header-row" data-target="#staffSectionContent">
     <h2><i class="fas fa-user-shield"></i> 🛡️ จัดการบัญชีพนักงาน (Admin/Employee)</h2>
     <button type="button" class="collapse-toggle-btn">
         <i class="fas fa-chevron-down"></i>
@@ -252,6 +257,7 @@ include('includes/header.php');
                     <th>Username</th>
                     <th>ชื่อ-สกุล</th>
                     <th>สิทธิ์ (Role)</th>
+                    <th>สถานะ</th>
                     <th>บัญชีที่เชื่อมโยง (LINE)</th>
                     <th>จัดการ</th>
                 </tr>
@@ -263,7 +269,7 @@ include('includes/header.php');
                     </tr>
                 <?php else: ?>
                     <?php foreach ($staff_accounts as $staff): ?>
-                    <tr class="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'current-user-row'; ?>">
+                        <tr class="<?php if ($staff['id'] == $_SESSION['user_id']) echo 'current-user-row'; ?>">
                             <td>
                                 <?php echo htmlspecialchars($staff['username']); ?>
                                 <?php if ($staff['id'] == $_SESSION['user_id']) echo ' <strong>(คุณ)</strong>'; ?>
@@ -272,49 +278,74 @@ include('includes/header.php');
                                 <?php echo htmlspecialchars($staff['full_name']); ?>
                             </td>
                             <td>
-                                <?php if ($staff['role'] == 'admin'): ?>
-                                    <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
-                                <?php else: ?>
-                                    <span style="color: var(--color-primary);">Employee</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php if ($staff['linked_line_user_id']): ?>
-                                    <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
-                                        <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
-                                    </span>
-                                <?php else: ?>
-                                    <span style="color: #6c757d;">(ไม่มี)</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="action-buttons">
-                                <button type="button"
-                                    class="btn btn-manage"
-                                    onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">ดู/แก้ไข</button>
+                        <?php if ($staff['role'] == 'admin'): ?>
+                            <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
+                        <?php else: ?>
+                            <span style="color: var(--color-primary);">Employee</span>
+                        <?php endif; ?>
+                    </td>
 
-                                <?php if ($staff['id'] != $_SESSION['user_id']): ?>
-                                    <?php if ($staff['linked_line_user_id']): ?>
-                                        <button type="button"
-                                            class="btn btn-danger"
-                                            onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                            <i class="fas fa-user-minus"></i> ลดสิทธิ์
-                                        </button>
-                                    <?php else: ?>
-                                        <button type="button"
-                                            class="btn btn-danger"
-                                            onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                            <i class="fas fa-trash"></i> ลบบัญชี
-                                        </button>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-                            </td>
+                    <td>
+                        <?php if ($staff['account_status'] == 'active'): ?>
+                            <span class="status-badge available">Active</span>
+                        <?php else: ?>
+                            <span class="status-badge disabled">Disabled</span>
+                        <?php endif; ?>
+                    </td>
+
+                    <td>
+                        <?php if ($staff['linked_line_user_id']): ?>
+                            <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
+                                <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
+                            </span>
+                        <?php else: ?>
+                            <span style="color: #6c757d;">(ไม่มี)</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="action-buttons">
+                        <button type="button"
+                            class="btn btn-manage"
+                            onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">ดู/แก้ไข</button>
+
+                        <?php if ($staff['id'] != $_SESSION['user_id']): // (ป้องกันการกระทำกับตัวเอง) ?>
+
+                            <?php if ($staff['account_status'] == 'active'): ?>
+                                <button type="button" 
+                                        class="btn btn-disable" 
+                                        onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'disabled')">
+                                    <i class="fas fa-user-lock"></i> ระงับ
+                                </button>
+                            <?php else: ?>
+                                <button type="button" 
+                                        class="btn btn-borrow" 
+                                        onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'active')">
+                                    <i class="fas fa-user-check"></i> เปิด
+                                </button>
+                            <?php endif; ?>
+
+                            <?php if ($staff['linked_line_user_id']): ?>
+                                <button type="button"
+                                    class="btn btn-danger"
+                                    onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                    <i class="fas fa-user-minus"></i> ลดสิทธิ์
+                                </button>
+                            <?php else: ?>
+                                <button type="button"
+                                    class="btn btn-danger"
+                                    onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                    <i class="fas fa-trash"></i> ลบบัญชี
+                                </button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
-</div> <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</div>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // (JS: "student" -> "user")
     function confirmDeleteStudent(event, id) {
@@ -384,31 +415,36 @@ include('includes/header.php');
     }
 
     // (ฟังก์ชัน Helper ใหม่ สำหรับ Popup "แก้ไข" เพื่อซ่อน/แสดง ช่อง "อื่นๆ")
-function checkOtherStatusPopup(value) {
-    var otherGroup = document.getElementById('other_status_group_popup');
-    var otherInput = document.getElementById('swal_edit_status_other');
-    if (value === 'other') {
-        otherGroup.style.display = 'block';
-        otherInput.required = true;
-    } else {
-        otherGroup.style.display = 'none';
-        otherInput.required = false;
+    function checkOtherStatusPopup(value) {
+        var otherGroup = document.getElementById('other_status_group_popup');
+        var otherInput = document.getElementById('swal_edit_status_other');
+        if (value === 'other') {
+            otherGroup.style.display = 'block';
+            otherInput.required = true;
+        } else {
+            otherGroup.style.display = 'none';
+            otherInput.required = false;
+        }
     }
-}
 
-   function openEditStudentPopup(studentId) {
-    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
-    fetch(`get_student_data.php?id=${studentId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status !== 'success') throw new Error(data.message);
-            const student = data.student;
-            
-            // (ใหม่) เช็คสถานะ "อื่นๆ" สำหรับการแสดงผลครั้งแรก
-            const otherStatusDisplay = (student.status === 'other') ? 'block' : 'none';
+    function openEditStudentPopup(studentId) {
+        Swal.fire({
+            title: 'กำลังโหลดข้อมูล...',
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        fetch(`get_student_data.php?id=${studentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') throw new Error(data.message);
+                const student = data.student;
 
-            // ◀️ (แก้ไข) อัปเกรด formHtml ให้มีทุกช่อง ◀️
-            const formHtml = `
+                // (ใหม่) เช็คสถานะ "อื่นๆ" สำหรับการแสดงผลครั้งแรก
+                const otherStatusDisplay = (student.status === 'other') ? 'block' : 'none';
+
+                // ◀️ (แก้ไข) อัปเกรด formHtml ให้มีทุกช่อง ◀️
+                const formHtml = `
                 <form id="swalEditStudentForm" style="text-align: left; margin-top: 20px;">
                     <input type="hidden" name="student_id" value="${student.id}">
                     
@@ -448,49 +484,54 @@ function checkOtherStatusPopup(value) {
                     </div>
                 </form>`;
 
-            Swal.fire({
-                title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
-                html: formHtml,
-                showCancelButton: true,
-                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: 'var(--color-primary, #0B6623)',
-                focusConfirm: false,
-                preConfirm: () => {
-                    const form = document.getElementById('swalEditStudentForm');
-                    const fullName = form.querySelector('#swal_edit_full_name').value;
-                    const status = form.querySelector('#swal_edit_status').value;
-                    const statusOther = form.querySelector('#swal_edit_status_other').value;
+                Swal.fire({
+                    title: '🔧 แก้ไขข้อมูลผู้ใช้งาน',
+                    html: formHtml,
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: 'var(--color-primary, #0B6623)',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const form = document.getElementById('swalEditStudentForm');
+                        const fullName = form.querySelector('#swal_edit_full_name').value;
+                        const status = form.querySelector('#swal_edit_status').value;
+                        const statusOther = form.querySelector('#swal_edit_status_other').value;
 
-                    // (อัปเดต Validation)
-                    if (!fullName || !status) {
-                        Swal.showValidationMessage('กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบถ้วน');
-                        return false;
+                        // (อัปเดต Validation)
+                        if (!fullName || !status) {
+                            Swal.showValidationMessage('กรุณากรอกช่องที่มีเครื่องหมาย * ให้ครบถ้วน');
+                            return false;
+                        }
+                        if (status === 'other' && !statusOther) {
+                            Swal.showValidationMessage('กรุณาระบุสถานภาพ "อื่นๆ"');
+                            return false;
+                        }
+                        // (จบส่วน Validation)
+
+                        return fetch('edit_student_process.php', {
+                                method: 'POST',
+                                body: new FormData(form)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'success') throw new Error(data.message);
+                                return data;
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                            });
                     }
-                    if (status === 'other' && !statusOther) {
-                        Swal.showValidationMessage('กรุณาระบุสถานภาพ "อื่นๆ"');
-                        return false;
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
                     }
-                    // (จบส่วน Validation)
-                    
-                    return fetch('edit_student_process.php', { method: 'POST', body: new FormData(form) })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.status !== 'success') throw new Error(data.message);
-                            return data;
-                        })
-                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลผู้ใช้งานเรียบร้อย', 'success').then(() => location.href = 'manage_students.php?edit=success');
-                }
+                });
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
             });
-        })
-        .catch(error => {
-            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
-        });
-}
+    }
 
     function openPromotePopup(studentId, studentName, lineId) {
         Swal.fire({
@@ -758,6 +799,47 @@ function checkOtherStatusPopup(value) {
                 Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
             });
     }
+    // (วางต่อจากฟังก์ชัน openEditStaffPopup)
+
+function confirmToggleStaffStatus(userId, staffName, newStatus) {
+    const actionText = (newStatus === 'disabled') ? 'ระงับบัญชี' : 'เปิดใช้งาน';
+    const actionIcon = (newStatus === 'disabled') ? 'warning' : 'info';
+    const actionConfirmColor = (newStatus === 'disabled') ? '#dc3545' : '#17a2b8';
+
+    Swal.fire({
+        title: `ยืนยันการ${actionText}?`,
+        text: `คุณกำลังจะ${actionText}บัญชีของ ${staffName}`,
+        icon: actionIcon,
+        showCancelButton: true,
+        confirmButtonColor: actionConfirmColor,
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: `ใช่, ${actionText}`,
+        cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const formData = new FormData();
+            formData.append('user_id', userId);
+            formData.append('new_status', newStatus);
+
+            fetch('toggle_staff_status.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('สำเร็จ!', data.message, 'success')
+                            .then(() => location.href = 'manage_students.php?staff_op=success');
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                });
+        }
+    });
+}
 </script>
 
 <?php
