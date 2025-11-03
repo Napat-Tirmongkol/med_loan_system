@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // 2. INSERT ข้อมูลลง med_equipment_items
-        $sql_item = "INSERT INTO med_equipment_items (type_id, name, serial_number, description, status) VALUES (?, ?, ?, ?, 'available')";
+        $sql_item = "INSERT INTO med_equipment_items (equipment_type_id, name, serial_number, description, status) VALUES (?, ?, ?, ?, 'available')";
         $stmt_item = $pdo->prepare($sql_item);
         $stmt_item->execute([$type_id, $name, $serial_number, $description]);
         $new_item_id = $pdo->lastInsertId();

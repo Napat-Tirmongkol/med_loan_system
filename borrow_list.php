@@ -14,20 +14,20 @@ require_once('db_connect.php'); //
 // 2. ดึง ID ของผู้ใช้งาน
 $student_id = $_SESSION['student_id']; 
 
-// 3. (แก้ไข Query) ดึงข้อมูลของที่ว่าง *ทั้งหมด*
+// 3. (แก้ไข Query) ◀️ กลับไปดึงจาก med_equipment (ตารางเดิม)
 try {
-    // (สังเกต: เราดึงข้อมูล *ทั้งหมด* ที่ว่างในตอนแรก)
-    $sql = "SELECT * 
-            FROM med_equipment_types 
-            WHERE available_quantity > 0 ORDER BY name ASC";
+    $sql = "SELECT id, name, description, serial_number, image_url 
+            FROM med_equipment 
+            WHERE status = 'available'
+            ORDER BY name ASC";
     
     $stmt_equip = $pdo->prepare($sql);
-    $stmt_equip->execute(); // (ไม่ต้องใช้ $params)
+    $stmt_equip->execute(); 
     $equipments = $stmt_equip->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     $equipments = [];
-    $equip_error = "เกิดข้อผิดพลาด: " . $e->getMessage(); // ◀️ (แก้ไข)
+    $equip_error = "เกิดข้อผิดพลาด: " . $e->getMessage(); // ◀️ แก้ไข .getMessage
 }
 
 // 4. ตั้งค่าตัวแปรสำหรับ Header
@@ -96,14 +96,14 @@ include('includes/student_header.php');
                         </div>
                         
                         <div class="equipment-card-footer">
-                            <span class="equipment-card-price" style="font-weight: bold;">
-                                ว่าง: <span style="color: var(--color-success); font-size: 1.2em;"><?php echo $row['available_quantity']; ?></span> / <?php echo $row['total_quantity']; ?> ชิ้น
+                            <span class="equipment-card-price" style="font-weight: bold; color: var(--color-primary);">
+                                <?php echo htmlspecialchars($row['serial_number'] ?? 'N/A'); ?>
                             </span>
 
                             <button type="button" 
                                     class="btn-loan" 
                                     title="ส่งคำขอยืม"
-                                    onclick="openRequestPopup(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars(addslashes($row['name'])); ?>')"><i class="fas fa-plus"></i></button>
+                                    onclick="openRequestPopup(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars(addslashes($row['name'])); ?>')">+</button>
                         </div>
 
                     </div>
@@ -119,7 +119,7 @@ include('includes/student_header.php');
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 // =========================================
-// (ใหม่) โค้ดสำหรับ Live Search
+// (Live Search - ส่วนนี้ถูกต้องแล้ว)
 // =========================================
 const searchInput = document.getElementById('liveSearchInput');
 const resultsContainer = document.getElementById('search-results-container');
@@ -147,6 +147,7 @@ function performSearch(query) {
     resultsContainer.style.display = 'block';
     resultsContainer.innerHTML = '<p style="padding: 1rem; text-align: center;">กำลังค้นหา...</p>';
 
+    // ◀️ (แก้ไข) ตรวจสอบว่าไฟล์ live_search_equipment.php ค้นหาจากตาราง med_equipment
     fetch(`live_search_equipment.php?term=${encodeURIComponent(query)}`)
         .then(response => response.json())
         .then(data => {
@@ -161,41 +162,31 @@ function performSearch(query) {
         });
 }
 
-// (4) ฟังก์ชันแสดงผลลัพธ์ (สร้าง HTML) - (เวอร์ชันอัปเดต V4)
 function displayResults(results) {
-    resultsContainer.innerHTML = ''; // (ล้างของเก่า)
+    resultsContainer.innerHTML = ''; 
     
     results.forEach(item => {
         
-        let imageHtml = ''; // (1. สร้างตัวแปรเก็บ HTML รูปภาพ)
-
-        // (2. ตรวจสอบว่าใน DB มี image_url หรือไม่)
+        let imageHtml = ''; 
         if (item.image_url) {
-            
-            // (3. ถ้ามี: สร้างแท็ก <img>)
             imageHtml = `
                 <img src="${escapeJS(item.image_url)}" 
                      alt="${escapeJS(item.name)}" 
                      class="search-result-image"
                      onerror="this.parentElement.innerHTML = '<div class=\'search-result-image-placeholder\'><i class=\'fas fa-image\'></i></div>'">`;
-                     // (กันเหนียว: ถ้า URL ใน DB เสีย ให้แสดงไอคอนรูปเสีย)
-
         } else {
-            
-            // (4. ถ้าไม่มี: สร้าง <div> Placeholder ที่เราเพิ่งทำ CSS)
             imageHtml = `
                 <div class="search-result-image-placeholder">
                     <i class="fas fa-camera"></i>
                 </div>`;
         }
 
-        // (5. สร้าง HTML ผลลัพธ์ 1 แถว (โดยใช้ imageHtml ที่ถูกต้อง))
         const itemHtml = `
             <div class="search-result-item" role="button" onclick="openRequestPopup(${item.id}, '${escapeJS(item.name)}')">
                 
                 ${imageHtml} <div class="search-result-info">
                     <h4>${item.name}</h4>
-                    <p>${item.serial_number || 'N/A'}</p>
+                    <p>${item.serial_number || 'N/A'}</p> 
                 </div>
             </div>
         `;
@@ -221,9 +212,9 @@ function escapeJS(str) {
 }
 
 // =========================================
-// (เดิม) โค้ดสำหรับ Popup ยืมของ
+// (แก้ไข) โค้ดสำหรับ Popup ยืมของ
 // =========================================
-function openRequestPopup(typeId, typeName) {
+function openRequestPopup(equipmentId, equipmentName) { // ◀️ (แก้ไข) กลับมาใช้ equipmentId
     Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
         text: 'กรุณารอสักครู่',
@@ -246,7 +237,8 @@ function openRequestPopup(typeId, typeName) {
             }
             const formHtml = `
                 <form id="swalRequestForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="type_id" value="${typeId}">
+                    <input type="hidden" name="equipment_id" value="${equipmentId}">
+                    
                     <div style="margin-bottom: 15px;">
                         <label for="swal_reason" style="font-weight: bold; display: block; margin-bottom: 5px;">1. เหตุผลการยืม: <span style="color:red;">*</span></label>
                         <textarea name="reason_for_borrowing" id="swal_reason" rows="3" required 
@@ -267,7 +259,7 @@ function openRequestPopup(typeId, typeName) {
                 </form>`;
 
             Swal.fire({
-                title: `📝 ส่งคำขอยืม: ${typeName}`,
+                title: `📝 ส่งคำขอยืม: ${equipmentName}`,
                 html: formHtml,
                 width: '600px',
                 showCancelButton: true,
@@ -280,10 +272,16 @@ function openRequestPopup(typeId, typeName) {
                     const reason = form.querySelector('#swal_reason').value;
                     const staffId = form.querySelector('#swal_staff_id').value;
                     const dueDate = form.querySelector('#swal_due_date').value;
-                    if (!reason || !staffId || !dueDate) {
+                    
+                    // ◀️ (แก้ไข) เพิ่มการตรวจสอบ equipment_id ที่ซ่อนอยู่ (นี่คือ Bug Fix)
+                    const equipmentIdHidden = form.querySelector('input[name="equipment_id"]').value;
+                    
+                    if (!reason || !staffId || !dueDate || !equipmentIdHidden || equipmentIdHidden == 0) {
                         Swal.showValidationMessage('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน');
                         return false;
                     }
+                    // (จบ Bug Fix)
+                    
                     return fetch('request_borrow_process.php', { 
                         method: 'POST',
                         body: new FormData(form)
@@ -302,7 +300,7 @@ function openRequestPopup(typeId, typeName) {
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire('ส่งคำขอสำเร็จ!', 'คำขอของคุณถูกส่งไปให้ Admin พิจารณาแล้ว', 'success')
-                    .then(() => location.href = 'request_history.php'); // (ส่งไปหน้าประวัติ)
+                    .then(() => location.href = 'request_history.php');
                 }
             });
         })
