@@ -95,7 +95,7 @@ try {
                                 <button type="button" class="btn btn-manage" onclick="openEditEquipmentTypePopup(<?php echo $type['id']; ?>)"> <!-- (แก้ Popup) -->
                                     <i class="fas fa-edit"></i> แก้ไข
                                 </button>
-                                <button type="button" class="btn btn-secondary" onclick="location.href='manage_items.php?type_id=<?php echo $type['id']; ?>'"> <!-- (เพิ่มปุ่มใหม่) -->
+                                <button type="button" class="btn btn-secondary" onclick="openManageItemsPopup(<?php echo $type['id']; ?>)"> <!-- (เปลี่ยนเป็น Popup) -->
                                     <i class="fas fa-list-ol"></i> จัดการรายชิ้น
                                 </button>
                             </td>
@@ -104,6 +104,48 @@ try {
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+
+    <!-- (Mobile View) Card List -->
+    <div class="mobile-only" style="display: flex; flex-direction: column; gap: 1rem;">
+        <?php if (isset($error_message)): ?>
+            <div class="history-card" style="color: red; justify-content: center;"><?php echo $error_message; ?></div>
+        <?php elseif (empty($equipment_types)): ?>
+            <div class="history-card" style="justify-content: center;">ไม่พบข้อมูลประเภทอุปกรณ์</div>
+        <?php else: ?>
+            <?php foreach ($equipment_types as $type): ?>
+                <div class="history-card">
+                    <div class="history-card-icon">
+                        <?php if (!empty($type['image_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($type['image_url']); ?>" alt="รูป" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;">
+                        <?php else: ?>
+                            <div class="equipment-card-image-placeholder" style="width: 50px; height: 50px; font-size: 1.5rem; border-radius: 8px;"><i class="fas fa-camera"></i></div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="history-card-info">
+                        <h4><?php echo htmlspecialchars($type['name']); ?></h4>
+                        <p>
+                            จำนวน: 
+                            <span style="font-weight: bold; color: var(--color-success);"><?php echo $type['available_quantity']; ?></span>
+                            / <?php echo $type['total_quantity']; ?>
+                        </p>
+                    </div>
+
+                    <div class="pending-card-actions">
+                        <button type="button" class="btn btn-borrow" onclick="openBorrowPopup(<?php echo $type['id']; ?>)" <?php echo ($type['available_quantity'] <= 0) ? 'disabled' : ''; ?>>
+                            <i class="fas fa-hand-paper"></i> ยืม
+                        </button>
+                        <button type="button" class="btn btn-manage" onclick="openEditEquipmentTypePopup(<?php echo $type['id']; ?>)">
+                            <i class="fas fa-edit"></i> แก้ไข
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="openManageItemsPopup(<?php echo $type['id']; ?>)">
+                            <i class="fas fa-list-ol"></i> จัดการ
+                        </button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>

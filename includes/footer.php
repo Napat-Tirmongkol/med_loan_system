@@ -506,6 +506,250 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function confirmDeleteItem(itemId, typeId) {
+    Swal.fire({
+        title: "คุณแน่ใจหรือไม่?",
+        text: "คุณกำลังจะลบอุปกรณ์ชิ้นนี้ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อสถานะไม่ใช่ 'ถูกยืม' เท่านั้น)",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "ใช่, ลบเลย",
+        cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            const formData = new FormData();
+            formData.append('item_id', itemId);
+            formData.append('type_id', typeId); // (ส่ง type_id ไปด้วย)
+
+            fetch('delete_item_process.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire('ลบสำเร็จ!', data.message, 'success')
+                    .then(() => location.reload());
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+            });
+        }
+    });
+}
+
+function openEditItemPopup(itemId) {
+    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
+    
+    // 1. ดึงข้อมูลเดิม
+    fetch(`get_item_data.php?id=${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') throw new Error(data.message);
+            const item = data.item;
+
+            // 2. สร้างตัวเลือกสถานะ
+            const statusOptions = `
+                <option value="available" ${item.status === 'available' ? 'selected' : ''}>ว่าง (Available)</option>
+                <option value="maintenance" ${item.status === 'maintenance' ? 'selected' : ''}>ซ่อมบำรุง (Maintenance)</option>
+            `;
+
+            // 3. แสดง Popup
+            Swal.fire({
+                title: '🔧 แก้ไขอุปกรณ์รายชิ้น (ID: ' + item.id + ')',
+                html: `
+                <form id="swalEditItemForm" style="text-align: left; margin-top: 20px;">
+                    <input type="hidden" name="item_id" value="${item.id}">
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อเฉพาะ:</label>
+                        <input type="text" name="name" id="swal_item_name" value="${item.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล (Serial Number):</label>
+                        <input type="text" name="serial_number" id="swal_item_serial" value="${item.serial_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด/หมายเหตุ:</label>
+                        <textarea name="description" id="swal_item_desc" rows="2" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${item.description || ''}</textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_status" style="font-weight: bold; display: block; margin-bottom: 5px;">สถานะ:</label>
+                        <select name="status" id="swal_item_status" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            ${statusOptions}
+                        </select>
+                    </div>
+                </form>`,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                preConfirm: () => {
+                    const form = document.getElementById('swalEditItemForm');
+                    if (!form.checkValidity()) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
+                    }
+                    return fetch('edit_item_process.php', { method: 'POST', body: new FormData(form) })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') throw new Error(data.message);
+                            return data;
+                        })
+                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success').then(() => location.reload());
+                }
+            });
+        })
+        .catch(error => {
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+        });
+}
+
+function openAddItemPopup(typeId, typeName) {
+    Swal.fire({
+        title: `➕ เพิ่มชิ้นอุปกรณ์ใหม่`,
+        html: `
+            <p style="text-align: left;">กำลังเพิ่มอุปกรณ์เข้าไปในประเภท: <strong>${typeName}</strong></p>
+            <form id="swalAddItemForm" style="text-align: left; margin-top: 20px;">
+                <input type="hidden" name="type_id" value="${typeId}">
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_item_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อเฉพาะ (ถ้ามี):</label>
+                    <input type="text" name="name" id="swal_item_name" value="${typeName}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <small>ปกติจะใช้ชื่อเดียวกับประเภท แต่สามารถตั้งชื่อเฉพาะได้ เช่น 'รถเข็น A-01'</small>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_item_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล (Serial Number):</label>
+                    <input type="text" name="serial_number" id="swal_item_serial" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_item_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด/หมายเหตุ:</label>
+                    <textarea name="description" id="swal_item_desc" rows="2" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
+                </div>
+            </form>`,
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        preConfirm: () => {
+            const form = document.getElementById('swalAddItemForm');
+            if (!form.checkValidity()) {
+                Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                return false;
+            }
+            return fetch('add_item_process.php', { method: 'POST', body: new FormData(form) })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') throw new Error(data.message);
+                    return data;
+                })
+                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('เพิ่มสำเร็จ!', 'เพิ่มอุปกรณ์ชิ้นใหม่เรียบร้อย', 'success').then(() => {
+                // (สำคัญ) ปิด Popup ปัจจุบันก่อน แล้วค่อยเปิด Popup รายการใหม่
+                Swal.close();
+                openManageItemsPopup(typeId); 
+            });
+        }
+    });
+}
+
+function openManageItemsPopup(typeId) {
+    Swal.fire({
+        title: 'กำลังโหลดรายการอุปกรณ์...',
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    fetch(`get_items_for_type.php?type_id=${typeId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') throw new Error(data.message);
+
+            const type = data.type;
+            const items = data.items;
+
+            let tableRows = '';
+            if (items.length === 0) {
+                tableRows = `<tr><td colspan="5" style="text-align: center;">ยังไม่มีอุปกรณ์รายชิ้นในประเภทนี้</td></tr>`;
+            } else {
+                items.forEach(item => {
+                    let statusBadge = '';
+                    if (item.status === 'available') {
+                        statusBadge = `<span class="status-badge available">Available</span>`;
+                    } else if (item.status === 'borrowed') {
+                        statusBadge = `<span class="status-badge borrowed">Borrowed</span>`;
+                    } else {
+                        statusBadge = `<span class="status-badge maintenance">Maintenance</span>`;
+                    }
+
+                    let actionButtons = '';
+                    if (item.status !== 'borrowed') {
+                        actionButtons = `
+                            <button class="btn btn-manage btn-sm" onclick="openEditItemPopup(${item.id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="confirmDeleteItem(${item.id}, ${item.type_id})"><i class="fas fa-trash"></i></button>
+                        `;
+                    } else {
+                        actionButtons = `<span class="text-muted" style="font-size: 0.9em;">ถูกยืมอยู่</span>`;
+                    }
+
+                    tableRows += `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.serial_number || '-'}</td>
+                            <td>${statusBadge}</td>
+                            <td class="action-buttons" style="gap: 0.25rem;">${actionButtons}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const popupHtml = `
+                <div style="text-align: left; max-height: 60vh; overflow-y: auto; margin-top: 1rem;">
+                    <table class="section-card" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">ID</th>
+                                <th>ชื่อ/รุ่น</th>
+                                <th>ซีเรียล</th>
+                                <th style="width: 120px;">สถานะ</th>
+                                <th style="width: 100px;">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            Swal.fire({
+                title: `รายการอุปกรณ์: ${type.name}`,
+                html: popupHtml,
+                width: '800px',
+                showConfirmButton: true,
+                confirmButtonText: `<i class="fas fa-plus"></i> เพิ่มอุปกรณ์ชิ้นใหม่`,
+                confirmButtonColor: 'var(--color-success)',
+                showCancelButton: true,
+                cancelButtonText: 'ปิดหน้าต่าง',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    openAddItemPopup(typeId, type.name);
+                }
+            });
+        })
+        .catch(error => {
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+        });
+}
+
 </script>
 
 </body>

@@ -1110,6 +1110,12 @@ body.dark-mode .borrower-info {
     color: var(--color-text-muted); /* (สีเทาสว่างสำหรับ Dark Mode) */
 }
 
+/* (เพิ่ม) ทำให้หัวตารางใน Popup ของ Dark Mode อ่านง่ายขึ้น */
+body.dark-mode .section-card th {
+    background-color: #374151; /* (สีพื้นหลังเข้ม) */
+    color: var(--color-text-dark); /* (สีตัวอักษรสว่าง) */
+}
+
 /* 6. (Override) สีลิงก์ใน Footer Nav */
 body.dark-mode .footer-nav a {
     color: var(--color-text-muted);
@@ -1120,6 +1126,37 @@ body.dark-mode .footer-nav a.active {
 body.dark-mode .footer-nav a:hover {
     background-color: #374151; /* (เข้มขึ้นนิดนึงเมื่อ Hover) */
 }
+
+/* =========================================
+ * (ใหม่) DARK MODE STYLES for SweetAlert2
+ * ========================================= */
+
+body.dark-mode .swal2-popup {
+    background-color: var(--color-content-bg) !important;
+}
+
+body.dark-mode .swal2-title {
+    color: var(--color-text-dark) !important;
+}
+
+body.dark-mode .swal2-html-container,
+body.dark-mode .swal2-html-container p,
+body.dark-mode .swal2-html-container small {
+    color: var(--color-text-muted) !important;
+}
+
+body.dark-mode .swal2-html-container strong {
+    color: var(--color-text-dark) !important;
+}
+
+body.dark-mode .swal2-input,
+body.dark-mode .swal2-textarea,
+body.dark-mode .swal2-select {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: var(--color-text-dark) !important;
+}
+
 
 /* (เพิ่ม) 7. CSS สำหรับปุ่ม Toggle */
 .theme-toggle-btn {
@@ -1264,7 +1301,7 @@ body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
 
     /* 3.2 แสดง "การ์ด" */
     .mobile-only {
-        display: flex; /* (หรือ block ตามความเหมาะสม) */
+        display: block; /* (เปลี่ยนเป็น block เพื่อให้ flex ในไฟล์ PHP ทำงานถูกต้อง) */
     }
     .student-card-list {
         display: flex;
