@@ -1,13 +1,10 @@
 <?php
-// edit_profile.php (หน้าตั้งค่า/แก้ไขโปรไฟล์)
+// student_dashboard.php (หน้าหลัก - รายการที่ยืมอยู่ - Layout ใหม่)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-// (⚠️ โค้ดสำหรับ Development Mode ⚠️)
 @session_start(); 
-// include('includes/check_student_session.php'); 
-$_SESSION['student_id'] = 9; 
-$_SESSION['student_full_name'] = "ผู้ใช้ทดสอบ";
-// (⚠️ จบส่วน Development Mode ⚠️)
+include('includes/check_student_session.php'); // (◀️ เปิดยาม)
+// (⚠️ ลบส่วน Development Mode ออกแล้ว ⚠️)
 
 require_once('db_connect.php'); //
 

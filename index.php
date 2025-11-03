@@ -16,7 +16,7 @@ try {
     $count_overdue = $stmt_overdue->fetchColumn();
 } catch (PDOException $e) {
     $count_borrowed = $count_available = $count_maintenance = $count_overdue = 0;
-    $kpi_error = "เกิดข้อผิดพลาดในการดึงข้อมูล KPI: " . $e->getMessage(); // ◀️ (แก้ไข)
+    $kpi_error = "เกิดข้อผิดพลาดในการดึงข้อมูล KPI: " . $e->getMessage(); 
 }
 
 // 4. ดึงข้อมูล "รายการรออนุมัติ" (Pending Requests) 
@@ -31,7 +31,8 @@ try {
                         s.full_name as student_name,
                         u.full_name as staff_name
                     FROM med_transactions t
-                    JOIN med_equipment_types et ON t.equipment_type_id = et.id
+                    -- ◀️ (แก้ไข) เปลี่ยน t.equipment_type_id เป็น t.type_id
+                    JOIN med_equipment_types et ON t.type_id = et.id 
                     LEFT JOIN med_students s ON t.borrower_student_id = s.id
                     LEFT JOIN med_users u ON t.lending_staff_id = u.id
                     WHERE t.approval_status = 'pending'
@@ -42,7 +43,7 @@ try {
     $pending_requests = $stmt_pending->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    $pending_error = "เกิดข้อผิดพลาดในการดึงข้อมูลคำขอ: " . $e->getMessage(); // ◀️ (แก้ไข)
+    $pending_error = "เกิดข้อผิดพลาดในการดึงข้อมูลคำขอ: " . $e->getMessage(); 
 }
 
 // 5. ดึงข้อมูล "รายการที่เกินกำหนดคืน"
@@ -66,7 +67,7 @@ try {
     $overdue_items = $stmt_overdue->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    $overdue_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเกินกำหนด: " . $e->getMessage(); // ◀️ (แก้ไข)
+    $overdue_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเกินกำหนด: " . $e->getMessage(); 
 }
 
 // 6. ดึงข้อมูล "รายการเคลื่อนไหวล่าสุด" (5 รายการ)
@@ -77,7 +78,8 @@ try {
                         et.name as equipment_name,
                         s.full_name as student_name
                     FROM med_transactions t
-                    JOIN med_equipment_types et ON t.equipment_type_id = et.id
+                    -- ◀️ (แก้ไข) เปลี่ยน t.equipment_type_id เป็น t.type_id
+                    JOIN med_equipment_types et ON t.type_id = et.id
                     LEFT JOIN med_students s ON t.borrower_student_id = s.id
                     ORDER BY t.id DESC
                     LIMIT 5";
@@ -85,7 +87,7 @@ try {
     $stmt_activity->execute();
     $recent_activity = $stmt_activity->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $activity_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเคลื่อนไหว: " . $e->getMessage(); // ◀️ (แก้ไข)
+    $activity_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเคลื่อนไหว: " . $e->getMessage(); 
 }
 
 
@@ -120,7 +122,9 @@ include('includes/header.php');
 
 <div class="dashboard-grid">
 
-    <div class="container-content">
+    <div class="container">
+        <h2><i class="fas fa-bell" style="color: var(--color-warning);"></i> รายการรออนุมัติ (<?php echo count($pending_requests); ?>)</h2>
+        <div class="container-content">
             <?php if (isset($pending_error)) echo "<p style='color: red;'>$pending_error</p>"; ?>
             
             <div class="history-list-container">
@@ -173,8 +177,7 @@ include('includes/header.php');
             
             </div>
         </div>
-
-    <div class="container">
+    </div> <div class="container">
         <h2><i class="fas fa-calendar-times" style="color: var(--color-danger);"></i> รายการที่เกินกำหนดคืน</h2>
         <div class="container-content">
             <?php if (isset($overdue_error)) echo "<p style='color: red;'>$overdue_error</p>"; ?>
@@ -316,12 +319,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 legend: {
                     position: 'top', // (แสดงคำอธิบายด้านบน)
                     
-                    // ( ◀️ เพิ่มส่วนนี้เข้าไปครับ )
                     labels: {
-                        // (เช็คว่า body มี class 'dark-mode' หรือไม่)
                         color: document.body.classList.contains('dark-mode') ? '#E5E7EB' : '#6C757D'
                     }
-                    // ( ◀️ จบส่วนที่เพิ่ม )
                 }
             }
         }
@@ -330,15 +330,13 @@ document.addEventListener("DOMContentLoaded", function() {
         const themeToggleBtn = document.getElementById('theme-toggle-btn');
         if (themeToggleBtn) {
             themeToggleBtn.addEventListener('click', function() {
-                // (รอ 10ms ให้ CSS เปลี่ยนก่อน)
                 setTimeout(() => {
                     const isDarkMode = document.body.classList.contains('dark-mode');
                     const newColor = isDarkMode ? '#E5E7EB' : '#6C757D';
                     
-                    // (สั่งให้กราฟอัปเดตสีตัวอักษร)
                     if (equipmentChart) {
                         equipmentChart.options.plugins.legend.labels.color = newColor;
-                        equipmentChart.update(); // (สั่งให้กราฟวาดใหม่)
+                        equipmentChart.update(); 
                     }
                 }, 10); 
             });

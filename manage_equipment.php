@@ -186,8 +186,7 @@ try {
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // ◀️ (แก้ไข) เปลี่ยนฟังก์ชัน openAddEquipmentPopup เป็น openAddTypePopup
-    // และเปลี่ยนไฟล์ที่เรียกเป็น add_type_process.php (ไฟล์ใหม่)
+    // (ฟังก์ชัน Add ที่แก้ไขแล้ว)
     function openAddTypePopup() {
         Swal.fire({
             title: '➕ เพิ่มประเภทอุปกรณ์ใหม่',
@@ -220,8 +219,8 @@ try {
                     return false;
                 }
                 
-                // ◀️ (แก้ไข) เรียกไฟล์ process ใหม่
-                return fetch('add_type_process.php', {
+                // (เรียกไฟล์ที่ถูกต้อง)
+                return fetch('add_equipment_type_process.php', {
                         method: 'POST',
                         body: new FormData(form)
                     })
@@ -240,9 +239,6 @@ try {
             }
         });
     }
-
-    // ◀️ (ลบ) ฟังก์ชัน confirmDeleteEquipment (ย้ายไปไฟล์ใหม่)
-    // ◀️ (ลบ) ฟังก์ชัน openEditPopup (ย้ายไปไฟล์ใหม่)
     
     // ◀️ (ใหม่) ฟังก์ชันสำหรับ "ลบ" ประเภท
     function confirmDeleteType(typeId, typeName) {
@@ -252,14 +248,113 @@ try {
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#d33",
-            // ... (โค้ด JS สำหรับเรียก delete_type_process.php) ...
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // (ส่งข้อมูลแบบ POST ไปยังไฟล์ลบ)
+                const formData = new FormData();
+                formData.append('id', typeId);
+
+                fetch('delete_equipment_type_process.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('ลบสำเร็จ!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                });
+            }
         });
-        // (หมายเหตุ: เรายังไม่ได้สร้างไฟล์ delete_type_process.php)
     }
 
     // ◀️ (ใหม่) ฟังก์ชันสำหรับ "แก้ไข" ประเภท
     function openEditTypePopup(typeId) {
-        // ... (โค้ด JS สำหรับเรียก get_type_data.php และ edit_type_process.php) ...
+        Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        
+        // 1. ดึงข้อมูลเดิมมาแสดง
+        fetch(`get_equipment_type_data.php?id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') throw new Error(data.message);
+                const type = data.equipment_type;
+                
+                let imagePreviewHtml = `
+                    <div class="equipment-card-image-placeholder" style="width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;">
+                        <i class="fas fa-camera"></i>
+                    </div>`;
+                if (type.image_url) {
+                    imagePreviewHtml = `
+                        <img src="${type.image_url}?t=${new Date().getTime()}" 
+                             alt="รูปตัวอย่าง" 
+                             style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 15px;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="equipment-card-image-placeholder" style="display: none; width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;"><i class="fas fa-image"></i></div>`;
+                }
+
+                // 2. แสดง Popup
+                Swal.fire({
+                    title: '🔧 แก้ไขประเภทอุปกรณ์',
+                    html: `
+                    <form id="swalEditForm" style="text-align: left; margin-top: 20px;">
+                        
+                        ${imagePreviewHtml}
+                        <input type="hidden" name="type_id" value="${type.id}">
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพใหม่ (เพื่อแทนที่):</label>
+                            <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            <small style="color: #6c757d;">(หากไม่ต้องการเปลี่ยนรูป ให้เว้นว่างไว้)</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อประเภทอุปกรณ์:</label>
+                            <input type="text" name="name" id="swal_name" value="${type.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
+                            <textarea name="description" id="swal_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${type.description || ''}</textarea>
+                        </div>
+                    </form>`,
+                    width: '600px',
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: 'var(--color-primary, #0B6623)',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const form = document.getElementById('swalEditForm');
+                        const name = form.querySelector('#swal_name').value;
+                        if (!name) {
+                            Swal.showValidationMessage('กรุณากรอกชื่อประเภทอุปกรณ์');
+                            return false;
+                        }
+                        // 3. ส่งข้อมูลไปที่ 'edit_equipment_type_process.php'
+                        return fetch('edit_equipment_type_process.php', { method: 'POST', body: new FormData(form) })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'success') throw new Error(data.message);
+                                return data;
+                            })
+                            .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลประเภทอุปกรณ์เรียบร้อย', 'success').then(() => location.href = 'manage_equipment.php?edit=success');
+                    }
+                });
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+            });
     }
 </script>
 

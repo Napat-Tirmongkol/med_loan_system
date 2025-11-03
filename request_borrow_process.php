@@ -1,6 +1,7 @@
 <?php
 // request_borrow_process.php
 // (อัปเดต V5 - รองรับระบบ Types/Items)
+// (แก้ไข: เพิ่ม equipment_id ที่หายไปใน INSERT)
 
 include('includes/check_student_session.php'); 
 require_once('db_connect.php'); 
@@ -10,7 +11,6 @@ $response = ['status' => 'error', 'message' => 'เกิดข้อผิด�
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // ◀️ (แก้ไข) รับ Type ID
     $type_id = isset($_POST['type_id']) ? (int)$_POST['type_id'] : 0; 
     
     $student_id = $_SESSION['student_id']; 
@@ -61,17 +61,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_type->execute([$type_id]);
 
         // 4. INSERT คำขอ (Transaction) ใหม่
-        //    (เราจะ INSERT ทั้ง type_id และ item_id)
-        //    (และสมมติว่าคุณได้ DROP equipment_id ออกไปแล้ว)
+        //    ◀️ (แก้ไข) เพิ่ม 'equipment_id' เข้าไปใน SQL
         $sql = "INSERT INTO med_transactions 
-                    (type_id, item_id, borrower_student_id, quantity, reason_for_borrowing, lending_staff_id, due_date, status, approval_status) 
+                    (type_id, item_id, equipment_id, borrower_student_id, quantity, reason_for_borrowing, lending_staff_id, due_date, status, approval_status) 
                 VALUES 
-                    (?, ?, ?, ?, ?, ?, ?, 'borrowed', 'pending')";
+                    (?, ?, ?, ?, ?, ?, ?, ?, 'borrowed', 'pending')";
         
         $stmt_trans = $pdo->prepare($sql);
+        
+        // ◀️ (แก้ไข) เพิ่ม $item_id_to_borrow อีก 1 ตัวสำหรับ equipment_id
         $stmt_trans->execute([
             $type_id, 
             $item_id_to_borrow, 
+            $item_id_to_borrow, // <-- (เพิ่มค่าสำหรับ equipment_id)
             $student_id, 
             $quantity, 
             $reason, 
@@ -85,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        $response['message'] = $e->getMessage(); // ◀️ แก้ไข .getMessage
+        $response['message'] = $e->getMessage(); 
     }
 
 } else {
