@@ -16,9 +16,9 @@ $student_id = $_SESSION['student_id'];
 
 // 3. (Query เฉพาะส่วนที่ยืมอยู่)
 try {
-    $sql_borrowed = "SELECT t.*, e.name as equipment_name, e.serial_number 
+    $sql_borrowed = "SELECT t.*, ei.name as equipment_name, ei.serial_number 
                      FROM med_transactions t
-                     JOIN med_equipment e ON t.equipment_id = e.id
+                     JOIN med_equipment_items ei ON t.equipment_id = ei.id
                      WHERE t.borrower_student_id = ? 
                        AND t.status = 'borrowed'
                        AND t.approval_status IN ('approved', 'staff_added')

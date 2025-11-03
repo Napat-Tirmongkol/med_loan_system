@@ -17,10 +17,9 @@ $student_id = $_SESSION['student_id'];
 // 3. (แก้ไข Query) ดึงข้อมูลของที่ว่าง *ทั้งหมด*
 try {
     // (สังเกต: เราดึงข้อมูล *ทั้งหมด* ที่ว่างในตอนแรก)
-    $sql = "SELECT id, name, description, serial_number, image_url 
-            FROM med_equipment 
-            WHERE status = 'available'
-            ORDER BY name ASC";
+    $sql = "SELECT * 
+            FROM med_equipment_types 
+            WHERE available_quantity > 0 ORDER BY name ASC";
     
     $stmt_equip = $pdo->prepare($sql);
     $stmt_equip->execute(); // (ไม่ต้องใช้ $params)
@@ -97,14 +96,14 @@ include('includes/student_header.php');
                         </div>
                         
                         <div class="equipment-card-footer">
-                            <span class="equipment-card-price" style="font-weight: bold; color: var(--color-primary);">
-                                <?php echo htmlspecialchars($row['serial_number'] ?? 'N/A'); ?>
+                            <span class="equipment-card-price" style="font-weight: bold;">
+                                ว่าง: <span style="color: var(--color-success); font-size: 1.2em;"><?php echo $row['available_quantity']; ?></span> / <?php echo $row['total_quantity']; ?> ชิ้น
                             </span>
 
                             <button type="button" 
                                     class="btn-loan" 
                                     title="ส่งคำขอยืม"
-                                    onclick="openRequestPopup(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars(addslashes($row['name'])); ?>')">+</button>
+                                    onclick="openRequestPopup(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars(addslashes($row['name'])); ?>')"><i class="fas fa-plus"></i></button>
                         </div>
 
                     </div>
@@ -224,7 +223,7 @@ function escapeJS(str) {
 // =========================================
 // (เดิม) โค้ดสำหรับ Popup ยืมของ
 // =========================================
-function openRequestPopup(equipmentId, equipmentName) {
+function openRequestPopup(typeId, typeName) {
     Swal.fire({
         title: 'กำลังโหลดข้อมูล...',
         text: 'กรุณารอสักครู่',
@@ -247,7 +246,7 @@ function openRequestPopup(equipmentId, equipmentName) {
             }
             const formHtml = `
                 <form id="swalRequestForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="equipment_id" value="${equipmentId}">
+                    <input type="hidden" name="type_id" value="${typeId}">
                     <div style="margin-bottom: 15px;">
                         <label for="swal_reason" style="font-weight: bold; display: block; margin-bottom: 5px;">1. เหตุผลการยืม: <span style="color:red;">*</span></label>
                         <textarea name="reason_for_borrowing" id="swal_reason" rows="3" required 
@@ -268,7 +267,7 @@ function openRequestPopup(equipmentId, equipmentName) {
                 </form>`;
 
             Swal.fire({
-                title: `📝 ส่งคำขอยืม: ${equipmentName}`,
+                title: `📝 ส่งคำขอยืม: ${typeName}`,
                 html: formHtml,
                 width: '600px',
                 showCancelButton: true,

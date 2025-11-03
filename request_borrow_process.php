@@ -12,7 +12,7 @@ $response = ['status' => 'error', 'message' => 'เกิดข้อผิด�
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 2. รับข้อมูลจากฟอร์ม AJAX
-    $equipment_id = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0;
+    $type_id = isset($_POST['type_id']) ? (int)$_POST['type_id'] : 0;
     
     // (สำคัญ) ดึง ID นักศึกษาจาก Session ที่ถูกต้อง
     $student_id = $_SESSION['student_id']; 
@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $staff_id_int = (int)$staff_id;
 
     // 3. ตรวจสอบข้อมูล
-    if ($equipment_id == 0 || $student_id == 0 || empty($reason) || $staff_id_int == 0 || empty($due_date)) {
+    if ($type_id == 0 || $student_id == 0 || empty($reason) || $staff_id_int == 0 || empty($due_date)) {
         $response['message'] = 'ข้อมูลที่ส่งมาไม่ครบถ้วน (เหตุผล, เจ้าหน้าที่, หรือวันที่คืน)';
         echo json_encode($response);
         exit;
@@ -35,24 +35,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 4. บันทึกลงฐานข้อมูล (med_transactions)
     try {
         // ตรวจสอบก่อนว่าอุปกรณ์ยัง "ว่าง" (available) หรือไม่
-        $stmt_check = $pdo->prepare("SELECT status FROM med_equipment WHERE id = ?");
-        $stmt_check->execute([$equipment_id]);
-        $current_status = $stmt_check->fetchColumn();
+        $stmt_check = $pdo->prepare("SELECT available_quantity FROM med_equipment_types WHERE id = ?");
+        $stmt_check->execute([$type_id]);
+        $available_quantity = $stmt_check->fetchColumn();
 
-        if ($current_status != 'available') {
+        if ($available_quantity <= 0) {
             throw new Exception("อุปกรณ์นี้ไม่พร้อมให้ยืม (อาจถูกยืมไปแล้ว)");
         }
 
         // 5. INSERT คำขอ (Transaction) ใหม่
         $sql = "INSERT INTO med_transactions 
-                    (equipment_id, borrower_student_id, quantity, reason_for_borrowing, lending_staff_id, due_date, status, approval_status) 
+                    (equipment_type_id, borrower_student_id, quantity, reason_for_borrowing, lending_staff_id, due_date, status, approval_status) 
                 VALUES 
                     (?, ?, ?, ?, ?, ?, 'borrowed', 'pending')";
         
         $stmt = $pdo->prepare($sql);
         // (ใช้ $student_id ที่ดึงจาก Session)
         $stmt->execute([
-            $equipment_id, $student_id, $quantity, $reason, $staff_id, $due_date // (ส่ง $quantity ที่เป็น 1)
+            $type_id, $student_id, $quantity, $reason, $staff_id, $due_date // (ส่ง $quantity ที่เป็น 1)
     ]);
 
         $response['status'] = 'success';

@@ -49,9 +49,9 @@ $current_page = $current_page ?? 'index';
 <script>
 
 // (ฟังก์ชัน "ยืม")
-function openBorrowPopup(equipmentId) {
+function openBorrowPopup(typeId) { // (เปลี่ยนเป็น typeId)
     Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-    fetch(`get_borrow_form_data.php?id=${equipmentId}`)
+    fetch(`get_borrow_form_data.php?type_id=${typeId}`) // (เปลี่ยน URL)
         .then(response => response.json())
         .then(data => {
             if (data.status !== 'success') throw new Error(data.message);
@@ -69,11 +69,10 @@ function openBorrowPopup(equipmentId) {
                 title: '📝 ฟอร์มยืมอุปกรณ์',
                 html: `
                 <div style="background: #f4f4f4; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
-                    <p style="margin: 0;"><strong>อุปกรณ์:</strong> ${data.equipment.name}</p>
-                    <p style="margin: 5px 0 0 0;"><strong>ซีเรียล:</strong> ${data.equipment.serial_number || 'N/A'}</p>
+                    <p style="margin: 0;"><strong>ประเภทอุปกรณ์:</strong> ${data.equipment_type.name}</p>
                 </div>
                 <form id="swalBorrowForm" style="text-align: left; margin-top: 20px;">
-                    <input type="hidden" name="equipment_id" value="${data.equipment.id}">
+                    <input type="hidden" name="type_id" value="${data.equipment_type.id}">
                     <div style="margin-bottom: 15px;">
                         <label for="swal_borrower_id" style="font-weight: bold; display: block; margin-bottom: 5px;">ผู้ยืม:</label>
                         <select name="borrower_id" id="swal_borrower_id" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
@@ -118,32 +117,64 @@ function openBorrowPopup(equipmentId) {
         });
 }
 
+function openAddEquipmentTypePopup() { // (แก้ชื่อฟังก์ชัน)
+    Swal.fire({
+        title: '➕ เพิ่มประเภทอุปกรณ์ใหม่',
+        html: `
+            <form id="swalAddForm" style="text-align: left; margin-top: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_eq_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อประเภทอุปกรณ์:</label>
+                    <input type="text" name="name" id="swal_eq_name" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label for="swal_eq_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
+                    <textarea name="description" id="swal_eq_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
+                </div>
+                </form>`,
+        width: '600px',
+        showCancelButton: true,
+        confirmButtonText: 'บันทึก',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: 'var(--color-success, #28a745)',
+        focusConfirm: false,
+        preConfirm: () => {
+            const form = document.getElementById('swalAddForm');
+            const name = form.querySelector('#swal_eq_name').value;
+            if (!name) {
+                Swal.showValidationMessage('กรุณากรอกชื่อประเภทอุปกรณ์');
+                return false;
+            }
+            return fetch('add_equipment_type_process.php', { method: 'POST', body: new FormData(form) }) // (แก้ URL)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') throw new Error(data.message);
+                    return data;
+                })
+                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('เพิ่มสำเร็จ!', 'เพิ่มประเภทอุปกรณ์ใหม่เรียบร้อย', 'success').then(() => location.reload());
+        }
+    });
+}
 // 2. ฟังก์ชัน "แก้ไข" (อัปเดตสำหรับ File Upload)
-function openEditPopup(equipmentId) {
+function openEditEquipmentTypePopup(typeId) { // (เปลี่ยนชื่อและ parameter)
     Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-    fetch(`get_equipment_data.php?id=${equipmentId}`)
+    fetch(`get_equipment_type_data.php?id=${typeId}`) // (เปลี่ยน URL)
         .then(response => response.json())
         .then(data => {
             if (data.status !== 'success') throw new Error(data.message);
-            const equip = data.equipment;
-            let statusOptions = '';
-            if (equip.status === 'borrowed') {
-                statusOptions = `<option value="borrowed" selected disabled>ถูกยืม (Borrowed) - (ต้องรับคืนก่อน)</option>`;
-            } else {
-                statusOptions = `
-                    <option value="available" ${equip.status === 'available' ? 'selected' : ''}>ว่าง (Available)</option>
-                    <option value="maintenance" ${equip.status === 'maintenance' ? 'selected' : ''}>ซ่อมบำรุง (Maintenance)</option>
-                `;
-            }
+            const type = data.equipment_type;
             
             // (สร้าง HTML สำหรับรูปตัวอย่าง)
             let imagePreviewHtml = `
                 <div class="equipment-card-image-placeholder" style="width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;">
                     <i class="fas fa-camera"></i>
                 </div>`;
-            if (equip.image_url) {
+            if (type.image_url) {
                 imagePreviewHtml = `
-                    <img src="${equip.image_url}" 
+                    <img src="${type.image_url}" 
                          alt="รูปตัวอย่าง" 
                          style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 15px;"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
@@ -151,11 +182,11 @@ function openEditPopup(equipmentId) {
             }
 
             Swal.fire({
-                title: '🔧 แก้ไขข้อมูลอุปกรณ์',
+                title: '🔧 แก้ไขประเภทอุปกรณ์',
                 html: `
                 <form id="swalEditForm" style="text-align: left; margin-top: 20px;">
                     
-                    ${imagePreviewHtml} <input type="hidden" name="equipment_id" value="${equip.id}">
+                    ${imagePreviewHtml} <input type="hidden" name="type_id" value="${type.id}">
                     
                     <div style="margin-bottom: 15px;">
                         <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพใหม่ (เพื่อแทนที่):</label>
@@ -164,22 +195,12 @@ function openEditPopup(equipmentId) {
                     </div>
                     
                     <div style="margin-bottom: 15px;">
-                        <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่ออุปกรณ์:</label>
-                        <input type="text" name="name" id="swal_name" value="${equip.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label for="swal_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล:</label>
-                        <input type="text" name="serial_number" id="swal_serial" value="${equip.serial_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                        <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อประเภทอุปกรณ์:</label>
+                        <input type="text" name="name" id="swal_name" value="${type.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                     </div>
                     <div style="margin-bottom: 15px;">
                         <label for="swal_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
-                        <textarea name="description" id="swal_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${equip.description || ''}</textarea>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <label for="swal_status" style="font-weight: bold; display: block; margin-bottom: 5px;">สถานะ:</label>
-                        <select name="status" id="swal_status" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
-                            ${statusOptions}
-                        </select>
+                        <textarea name="description" id="swal_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${type.description || ''}</textarea>
                     </div>
                 </form>`,
                 width: '600px',
@@ -197,10 +218,10 @@ function openEditPopup(equipmentId) {
                     const form = document.getElementById('swalEditForm');
                     const name = form.querySelector('#swal_name').value;
                     if (!name) {
-                        Swal.showValidationMessage('กรุณากรอกชื่ออุปกรณ์');
+                        Swal.showValidationMessage('กรุณากรอกชื่อประเภทอุปกรณ์');
                         return false;
                     }
-                    return fetch('edit_process.php', { method: 'POST', body: new FormData(form) })
+                    return fetch('edit_equipment_type_process.php', { method: 'POST', body: new FormData(form) }) // (เปลี่ยน URL)
                         .then(response => response.json())
                         .then(data => {
                             if (data.status !== 'success') throw new Error(data.message);
@@ -210,13 +231,13 @@ function openEditPopup(equipmentId) {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success').then(() => location.reload());
+                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลประเภทอุปกรณ์เรียบร้อย', 'success').then(() => location.reload());
                 }
             });
 
             // (เพิ่ม) Logic สำหรับปุ่ม "ลบ"
             document.querySelector('.swal2-deny').addEventListener('click', function(e) {
-                confirmDeleteEquipment(e, equipmentId);
+                confirmDeleteEquipmentType(e, typeId); // (เปลี่ยนฟังก์ชัน)
             });
         })
         .catch(error => {

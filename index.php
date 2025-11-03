@@ -6,11 +6,11 @@ require_once('db_connect.php'); //
 
 // 3. ดึงข้อมูล KPI (กล่องสรุป)
 try {
-    $stmt_borrowed = $pdo->query("SELECT COUNT(*) FROM med_equipment WHERE status = 'borrowed'");
+    $stmt_borrowed = $pdo->query("SELECT COUNT(*) FROM med_equipment_items WHERE status = 'borrowed'");
     $count_borrowed = $stmt_borrowed->fetchColumn();
-    $stmt_available = $pdo->query("SELECT COUNT(*) FROM med_equipment WHERE status = 'available'");
+    $stmt_available = $pdo->query("SELECT COUNT(*) FROM med_equipment_items WHERE status = 'available'");
     $count_available = $stmt_available->fetchColumn();
-    $stmt_maintenance = $pdo->query("SELECT COUNT(*) FROM med_equipment WHERE status = 'maintenance'");
+    $stmt_maintenance = $pdo->query("SELECT COUNT(*) FROM med_equipment_items WHERE status = 'maintenance'");
     $count_maintenance = $stmt_maintenance->fetchColumn();
     $stmt_overdue = $pdo->query("SELECT COUNT(*) FROM med_transactions WHERE status = 'borrowed' AND approval_status IN ('approved', 'staff_added') AND due_date < CURDATE()");
     $count_overdue = $stmt_overdue->fetchColumn();
@@ -27,11 +27,11 @@ try {
                         t.borrow_date, 
                         t.due_date,
                         t.reason_for_borrowing,
-                        e.name as equipment_name,
+                        et.name as equipment_name,
                         s.full_name as student_name,
                         u.full_name as staff_name
                     FROM med_transactions t
-                    JOIN med_equipment e ON t.equipment_id = e.id
+                    JOIN med_equipment_types et ON t.equipment_type_id = et.id
                     LEFT JOIN med_students s ON t.borrower_student_id = s.id
                     LEFT JOIN med_users u ON t.lending_staff_id = u.id
                     WHERE t.approval_status = 'pending'
@@ -51,11 +51,11 @@ try {
     $sql_overdue = "SELECT 
                         t.due_date,
                         t.equipment_id,
-                        e.name as equipment_name,
+                        ei.name as equipment_name,
                         s.full_name as student_name,
                         s.phone_number
                     FROM med_transactions t
-                    JOIN med_equipment e ON t.equipment_id = e.id
+                    JOIN med_equipment_items ei ON t.equipment_id = ei.id
                     LEFT JOIN med_students s ON t.borrower_student_id = s.id
                     WHERE t.status = 'borrowed' 
                       AND t.approval_status IN ('approved', 'staff_added') 
@@ -74,10 +74,10 @@ $recent_activity = [];
 try {
     $sql_activity = "SELECT 
                         t.approval_status, t.status, t.borrow_date, t.return_date,
-                        e.name as equipment_name,
+                        et.name as equipment_name,
                         s.full_name as student_name
                     FROM med_transactions t
-                    JOIN med_equipment e ON t.equipment_id = e.id
+                    JOIN med_equipment_types et ON t.equipment_type_id = et.id
                     LEFT JOIN med_students s ON t.borrower_student_id = s.id
                     ORDER BY t.id DESC
                     LIMIT 5";

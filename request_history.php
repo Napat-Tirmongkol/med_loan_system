@@ -16,9 +16,9 @@ $student_id = $_SESSION['student_id'];
 
 // 3. (Query เฉพาะประวัติ)
 try {
-    $sql_history = "SELECT t.*, e.name as equipment_name, e.serial_number 
+    $sql_history = "SELECT t.*, et.name as equipment_name
                     FROM med_transactions t
-                    JOIN med_equipment e ON t.equipment_id = e.id
+                    JOIN med_equipment_types et ON t.equipment_type_id = et.id
                     WHERE t.borrower_student_id = ? 
                       AND (t.status = 'returned' OR t.approval_status IN ('pending', 'rejected'))
                     ORDER BY t.borrow_date DESC, t.id DESC";

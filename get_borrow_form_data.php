@@ -15,30 +15,30 @@ header('Content-Type: application/json');
 $response = [
     'status' => 'error', 
     'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ',
-    'equipment' => null, 
+    'equipment_type' => null, 
     'borrowers' => []  // (***สำคัญ: เรายังใช้ชื่อ 'borrowers' เหมือนเดิม)
 ];
 
 // 4. รับ ID อุปกรณ์จาก URL
-$equipment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($equipment_id == 0) {
-    $response['message'] = 'ไม่ได้ระบุ ID อุปกรณ์';
+$type_id = isset($_GET['type_id']) ? (int)$_GET['type_id'] : 0;
+if ($type_id == 0) {
+    $response['message'] = 'ไม่ได้ระบุ ID ประเภทอุปกรณ์';
     echo json_encode($response);
     exit;
 }
 
 try {
     // 5.1 ดึงข้อมูลอุปกรณ์ (เหมือนเดิม)
-    $stmt_equip = $pdo->prepare("SELECT id, name, serial_number FROM med_equipment WHERE id = ? AND status = 'available'");
-    $stmt_equip->execute([$equipment_id]);
-    $equipment = $stmt_equip->fetch(PDO::FETCH_ASSOC);
+    $stmt_equip = $pdo->prepare("SELECT id, name FROM med_equipment_types WHERE id = ? AND available_quantity > 0");
+    $stmt_equip->execute([$type_id]);
+    $equipment_type = $stmt_equip->fetch(PDO::FETCH_ASSOC);
 
-    if (!$equipment) {
+    if (!$equipment_type) {
         $response['message'] = 'ไม่พบอุปกรณ์ หรืออุปกรณ์นี้ไม่พร้อมให้ยืม';
         echo json_encode($response);
         exit;
     }
-    $response['equipment'] = $equipment;
+    $response['equipment_type'] = $equipment_type;
 
     // 5.2 (SQL ใหม่) ดึงรายชื่อผู้ใช้ทั้งหมดจาก med_students
     $stmt_borrowers = $pdo->prepare("SELECT id, full_name, phone_number FROM med_students ORDER BY full_name ASC");

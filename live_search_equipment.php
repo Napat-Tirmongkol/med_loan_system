@@ -27,15 +27,15 @@ try {
     $search_param = '%' . $search_term . '%';
     
     // (ค้นหาเฉพาะของที่ "available" เท่านั้น)
-    $sql = "SELECT id, name, serial_number, image_url, description 
-            FROM med_equipment 
-            WHERE status = 'available' 
-              AND (name LIKE ? OR serial_number LIKE ? OR description LIKE ?)
+    $sql = "SELECT id, name, image_url, description 
+            FROM med_equipment_types 
+            WHERE available_quantity > 0 
+              AND (name LIKE ? OR description LIKE ?)
             ORDER BY name ASC
             LIMIT 10"; // (จำกัดผลลัพธ์แค่ 10 รายการ)
             
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$search_param, $search_param, $search_param]);
+    $stmt->execute([$search_param, $search_param]);
     $equipments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $response['status'] = 'success';
