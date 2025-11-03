@@ -109,7 +109,7 @@ try {
     </div>
 
 
-    <div class="table-container">
+    <div class="table-container desktop-only">
         <table>
             <thead>
                 <tr>
@@ -118,13 +118,12 @@ try {
                     <th>เลขซีเรียล</th>
                     <th>รายละเอียด</th>
                     <th>สถานะ</th>
-                    <th>จัดการ</th>
-                </tr>
+                    <th style="width: 210px;">จัดการ</th> </tr>
             </thead>
             <tbody>
                 <?php if (empty($equipments)): ?>
                     <tr>
-                        <td colspan="8" style="text-align: center;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</td> </tr>
+                        <td colspan="7" style="text-align: center;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</td> </tr>
                 <?php else: ?>
                     <?php foreach ($equipments as $row): ?>
                         <tr>
@@ -141,12 +140,12 @@ try {
                                     </div>
                                 <?php endif; ?>
                             </td>
-                            <td><?php echo $row['id']; ?></td> <td><?php echo htmlspecialchars($row['name']); ?></td>
+                            <td><?php echo $row['id']; ?></td> 
+                            <td><?php echo htmlspecialchars($row['name']); ?></td>
                             <td><?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></td>
                             <td style="white-space: pre-wrap; min-width: 200px;"><?php echo htmlspecialchars($row['description'] ?? '-'); ?></td>
                             <td>
-                                <?php // (Status Badge ... โค้ดส่วนนี้ถูกต้องแล้ว)
-                                if ($row['status'] == 'available'): ?>
+                                <?php if ($row['status'] == 'available'): ?>
                                     <span class="status-badge available">ว่าง</span>
                                 <?php elseif ($row['status'] == 'borrowed'): ?>
                                     <span class="status-badge borrowed">ถูกยืม</span>
@@ -159,8 +158,7 @@ try {
                                 <?php endif; ?>
                             </td>
                             <td class="action-buttons">
-                                <?php // (Action Buttons ... โค้ดส่วนนี้ถูกต้องแล้ว)
-                                if ($row['status'] == 'available'): ?>
+                                <?php if ($row['status'] == 'available'): ?>
                                     <button type="button" class="btn btn-borrow" onclick="openBorrowPopup(<?php echo $row['id']; ?>)">ยืม</button>
                                 <?php elseif ($row['status'] == 'borrowed'): ?>
                                     <?php if (in_array($_SESSION['role'], ['admin', 'employee'])): ?>
@@ -182,7 +180,67 @@ try {
             </tbody>
         </table>
     </div>
-</div>
+
+    <div class="student-card-list">
+        <?php if (empty($equipments)): ?>
+            <div class="history-card">
+                <p style="text-align: center; width: 100%;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($equipments as $row): ?>
+                <div class="history-card">
+                    
+                    <div class="history-card-icon">
+                        <?php if (!empty($row['image_url'])): ?>
+                            <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
+                                 alt="รูป" 
+                                 style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                            <div class="equipment-card-image-placeholder" style="display: none; width: 40px; height: 40px; font-size: 1.2rem;"><i class="fas fa-image"></i></div>
+                        <?php else: ?>
+                            <div class="equipment-card-image-placeholder" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div class="history-card-info">
+                        <h4 class="truncate-text" title="<?php echo htmlspecialchars($row['name']); ?>">
+                            <?php echo htmlspecialchars($row['name']); ?>
+                        </h4>
+                        <p>S/N: <?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></p>
+                        
+                        <?php if ($row['status'] == 'available'): ?>
+                            <span class="status-badge available">ว่าง</span>
+                        <?php elseif ($row['status'] == 'borrowed'): ?>
+                            <span class="status-badge borrowed">ถูกยืม</span>
+                        <?php else: // 'maintenance' ?>
+                            <span class="status-badge maintenance">ซ่อมบำรุง</span>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="pending-card-actions">
+                        <?php if ($row['status'] == 'available'): ?>
+                            <button type="button" class="btn btn-borrow" onclick="openBorrowPopup(<?php echo $row['id']; ?>)">ยืม</button>
+                        <?php elseif ($row['status'] == 'borrowed'): ?>
+                            <?php if (in_array($_SESSION['role'], ['admin', 'employee'])): ?>
+                                <button type="button" class="btn btn-return" onclick="openReturnPopup(<?php echo $row['id']; ?>)">รับคืน</button>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                        
+                        <?php if ($_SESSION['role'] == 'admin'): ?>
+                            <button type="button" class="btn btn-manage" onclick="openEditPopup(<?php echo $row['id']; ?>)">แก้ไข</button>
+                            <a href="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
+                               class="btn btn-danger" 
+                               onclick="confirmDeleteEquipment(event, <?php echo $row['id']; ?>)">ลบ</a>
+                        <?php endif; ?>
+                    </div>
+
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+    </div>
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
