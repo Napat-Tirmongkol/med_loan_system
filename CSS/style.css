@@ -338,16 +338,12 @@ body {
   border-bottom: 1px solid var(--border-color);
   text-align: left;
   white-space: normal;
-  border-right: 1px solid var(--border-color); /* (ให้ตัดคำได้) */
+  /*border-right: 1px solid var(--border-color); /* (ให้ตัดคำได้) */
 }
 .table-container th {
   background: #f1f5f9; /* (ข้อ 4) */
   font-weight: 600;
   white-space: nowrap;
-}
-.table-container th:last-child,
-.table-container td:last-child {
-    border-right: none;
 }
 /* (ลบเส้นขอบล่างของแถวสุดท้าย) */
 .table-container tr:last-child td {
