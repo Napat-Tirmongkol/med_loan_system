@@ -1,6 +1,6 @@
 <?php
 // add_item_process.php
-// (ไฟล์ใหม่)
+// (แก้ไข: 1. แก้ไข .getMessage, 2. แก้ไขชื่อคอลัมน์ 'type_id')
 
 include('includes/check_session_ajax.php');
 require_once('db_connect.php');
@@ -16,10 +16,10 @@ header('Content-Type: application/json');
 $response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $type_id = isset($_POST['type_id']) ? (int)$_POST['type_id'] : 0;
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $type_id       = isset($_POST['type_id']) ? (int)$_POST['type_id'] : 0;
+    $name          = isset($_POST['name']) ? trim($_POST['name']) : '';
     $serial_number = isset($_POST['serial_number']) ? trim($_POST['serial_number']) : null;
-    $description = isset($_POST['description']) ? trim($_POST['description']) : null;
+    $description   = isset($_POST['description']) ? trim($_POST['description']) : null;
 
     if ($type_id == 0 || empty($name)) {
         $response['message'] = 'ข้อมูลไม่ครบถ้วน (Type ID หรือ Name)';
@@ -40,7 +40,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         // 2. INSERT ข้อมูลลง med_equipment_items
-        $sql_item = "INSERT INTO med_equipment_items (equipment_type_id, name, serial_number, description, status) VALUES (?, ?, ?, ?, 'available')";
+        // ◀️ (จุดที่แก้ไข) ต้องเป็น 'type_id' ตามฐานข้อมูลของคุณ
+        $sql_item = "INSERT INTO med_equipment_items (type_id, name, serial_number, description, status) VALUES (?, ?, ?, ?, 'available')";
         $stmt_item = $pdo->prepare($sql_item);
         $stmt_item->execute([$type_id, $name, $serial_number, $description]);
         $new_item_id = $pdo->lastInsertId();
@@ -63,8 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        // ◀️ (แก้ไข) ใช้ ->
-        $response['message'] = $e->getMessage();
+        $response['message'] = $e->getMessage(); // ◀️ (แก้ไข .getMessage)
     }
 }
 
