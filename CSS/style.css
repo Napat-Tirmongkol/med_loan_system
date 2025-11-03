@@ -327,24 +327,24 @@ body {
   box-shadow: var(--box-shadow-main);
 }
 .table-container table {
-    display: table; /* (ลบล้าง display: block) */
     width: 100%;
-    border: none;
-    margin-top: 0;
-    min-width: 700px;
+    border-collapse: collapse; /* ✅ สำคัญมาก */
+    border-spacing: 0; /* ✅ ป้องกันเส้นห่าง */
 }
-.table-container th, .table-container td {
-  padding: 12px 16px; /* (ข้อ 4) */
-  border-bottom: 1px solid var(--border-color);
-  text-align: left;
-  white-space: normal;
-  /*border-right: 1px solid var(--border-color); /* (ให้ตัดคำได้) */
+
+.table-container th,
+.table-container td {
+    border: 1px solid var(--border-color); /* ✅ ให้ทุกช่องมีกรอบเดียวกัน */
+    padding: 12px 16px;
+    text-align: left;
+    vertical-align: middle; /* ✅ จัดให้อยู่กลางแนวตั้ง */
 }
+
 .table-container th {
-  background: #f1f5f9; /* (ข้อ 4) */
-  font-weight: 600;
-  white-space: nowrap;
+    background: #f1f5f9;
+    font-weight: 600;
 }
+
 /* (ลบเส้นขอบล่างของแถวสุดท้าย) */
 .table-container tr:last-child td {
     border-bottom: none;

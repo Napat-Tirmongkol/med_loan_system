@@ -41,6 +41,19 @@ try {
     $staff_accounts = [];
 }
 
+$status_counts = [
+    'student' => 0,
+    'teacher' => 0,
+    'staff'   => 0,
+    'other'   => 0,
+];
+
+foreach ($students as $student) {
+    $status = $student['status']; // e.g., 'student', 'teacher', etc.
+    if (isset($status_counts[$status])) {
+        $status_counts[$status]++;
+    }
+}
 
 // 5. (โค้ดเช็ค $_GET)
 $message = '';
@@ -81,6 +94,13 @@ include('includes/header.php');
         <?php echo $message; ?>
     </div>
 <?php endif; ?>
+
+<div class="section-card" style="margin-bottom: 1.5rem;">
+    <h2 class="section-title">ภาพรวมสัดส่วนผู้ใช้งาน</h2>
+    <div style="width: 100%; max-width: 400px; margin: 0 auto;">
+        <canvas id="userRoleChart"></canvas>
+    </div>
+</div>
 
 <div class="header-row" data-target="#userSectionContent">
     <h2><i class="fas fa-users"></i> 👥 จัดการผู้ใช้งาน (User)</h2>
@@ -278,66 +298,67 @@ include('includes/header.php');
                                 <?php echo htmlspecialchars($staff['full_name']); ?>
                             </td>
                             <td>
-                        <?php if ($staff['role'] == 'admin'): ?>
-                            <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
-                        <?php else: ?>
-                            <span style="color: var(--color-primary);">Employee</span>
-                        <?php endif; ?>
-                    </td>
+                                <?php if ($staff['role'] == 'admin'): ?>
+                                    <span style="color: var(--color-danger); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>
+                                <?php else: ?>
+                                    <span style="color: var(--color-primary);">Employee</span>
+                                <?php endif; ?>
+                            </td>
 
-                    <td>
-                        <?php if ($staff['account_status'] == 'active'): ?>
-                            <span class="status-badge available">Active</span>
-                        <?php else: ?>
-                            <span class="status-badge disabled">Disabled</span>
-                        <?php endif; ?>
-                    </td>
+                            <td>
+                                <?php if ($staff['account_status'] == 'active'): ?>
+                                    <span class="status-badge available">Active</span>
+                                <?php else: ?>
+                                    <span class="status-badge disabled">Disabled</span>
+                                <?php endif; ?>
+                            </td>
 
-                    <td>
-                        <?php if ($staff['linked_line_user_id']): ?>
-                            <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
-                                <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
-                            </span>
-                        <?php else: ?>
-                            <span style="color: #6c757d;">(ไม่มี)</span>
-                        <?php endif; ?>
-                    </td>
-                    <td class="action-buttons">
-                        <button type="button"
-                            class="btn btn-manage"
-                            onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">ดู/แก้ไข</button>
-
-                        <?php if ($staff['id'] != $_SESSION['user_id']): // (ป้องกันการกระทำกับตัวเอง) ?>
-
-                            <?php if ($staff['account_status'] == 'active'): ?>
-                                <button type="button" 
-                                        class="btn btn-disable" 
-                                        onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'disabled')">
-                                    <i class="fas fa-user-lock"></i> ระงับ
-                                </button>
-                            <?php else: ?>
-                                <button type="button" 
-                                        class="btn btn-borrow" 
-                                        onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'active')">
-                                    <i class="fas fa-user-check"></i> เปิด
-                                </button>
-                            <?php endif; ?>
-
-                            <?php if ($staff['linked_line_user_id']): ?>
+                            <td>
+                                <?php if ($staff['linked_line_user_id']): ?>
+                                    <span style="color: #00B900;" title="ผูกกับ LINE ID: <?php echo htmlspecialchars($staff['linked_line_user_id']); ?>">
+                                        <i class="fas fa-link"></i> <?php echo htmlspecialchars($staff['linked_student_name'] ?? 'N/A'); ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span style="color: #6c757d;">(ไม่มี)</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="action-buttons">
                                 <button type="button"
-                                    class="btn btn-danger"
-                                    onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                    <i class="fas fa-user-minus"></i> ลดสิทธิ์
-                                </button>
-                            <?php else: ?>
-                                <button type="button"
-                                    class="btn btn-danger"
-                                    onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
-                                    <i class="fas fa-trash"></i> ลบบัญชี
-                                </button>
-                            <?php endif; ?>
-                        <?php endif; ?>
-                    </td>
+                                    class="btn btn-manage"
+                                    onclick="openEditStaffPopup(<?php echo $staff['id']; ?>)">ดู/แก้ไข</button>
+
+                                <?php if ($staff['id'] != $_SESSION['user_id']): // (ป้องกันการกระทำกับตัวเอง) 
+                                ?>
+
+                                    <?php if ($staff['account_status'] == 'active'): ?>
+                                        <button type="button"
+                                            class="btn btn-disable"
+                                            onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'disabled')">
+                                            <i class="fas fa-user-lock"></i> ระงับ
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button"
+                                            class="btn btn-borrow"
+                                            onclick="confirmToggleStaffStatus(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>', 'active')">
+                                            <i class="fas fa-user-check"></i> เปิด
+                                        </button>
+                                    <?php endif; ?>
+
+                                    <?php if ($staff['linked_line_user_id']): ?>
+                                        <button type="button"
+                                            class="btn btn-danger"
+                                            onclick="confirmDemote(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                            <i class="fas fa-user-minus"></i> ลดสิทธิ์
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="button"
+                                            class="btn btn-danger"
+                                            onclick="confirmDeleteStaff(<?php echo $staff['id']; ?>, '<?php echo htmlspecialchars(addslashes($staff['full_name'])); ?>')">
+                                            <i class="fas fa-trash"></i> ลบบัญชี
+                                        </button>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
@@ -801,45 +822,125 @@ include('includes/header.php');
     }
     // (วางต่อจากฟังก์ชัน openEditStaffPopup)
 
-function confirmToggleStaffStatus(userId, staffName, newStatus) {
-    const actionText = (newStatus === 'disabled') ? 'ระงับบัญชี' : 'เปิดใช้งาน';
-    const actionIcon = (newStatus === 'disabled') ? 'warning' : 'info';
-    const actionConfirmColor = (newStatus === 'disabled') ? '#dc3545' : '#17a2b8';
+    function confirmToggleStaffStatus(userId, staffName, newStatus) {
+        const actionText = (newStatus === 'disabled') ? 'ระงับบัญชี' : 'เปิดใช้งาน';
+        const actionIcon = (newStatus === 'disabled') ? 'warning' : 'info';
+        const actionConfirmColor = (newStatus === 'disabled') ? '#dc3545' : '#17a2b8';
 
-    Swal.fire({
-        title: `ยืนยันการ${actionText}?`,
-        text: `คุณกำลังจะ${actionText}บัญชีของ ${staffName}`,
-        icon: actionIcon,
-        showCancelButton: true,
-        confirmButtonColor: actionConfirmColor,
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: `ใช่, ${actionText}`,
-        cancelButtonText: "ยกเลิก"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const formData = new FormData();
-            formData.append('user_id', userId);
-            formData.append('new_status', newStatus);
+        Swal.fire({
+            title: `ยืนยันการ${actionText}?`,
+            text: `คุณกำลังจะ${actionText}บัญชีของ ${staffName}`,
+            icon: actionIcon,
+            showCancelButton: true,
+            confirmButtonColor: actionConfirmColor,
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: `ใช่, ${actionText}`,
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const formData = new FormData();
+                formData.append('user_id', userId);
+                formData.append('new_status', newStatus);
 
-            fetch('toggle_staff_status.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        Swal.fire('สำเร็จ!', data.message, 'success')
-                            .then(() => location.href = 'manage_students.php?staff_op=success');
-                    } else {
-                        Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                fetch('toggle_staff_status.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            Swal.fire('สำเร็จ!', data.message, 'success')
+                                .then(() => location.href = 'manage_students.php?staff_op=success');
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                    });
+            }
+        });
+    }
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const ctx = document.getElementById('userRoleChart').getContext('2d');
+
+        // (2) (แก้ไข) ดึงข้อมูล PHP ที่เรานับแยกตามสถานะ
+        const statusData = <?php echo json_encode($status_counts); ?>;
+
+        // (3) ตรวจสอบ Dark Mode (เหมือนกราฟใน index.php)
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const chartTextColor = isDarkMode ? '#E5E7EB' : '#6C757D';
+
+        // (4) สร้างกราฟ (แบบ Doughnut)
+        const userRoleChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                // (แก้ไข) เปลี่ยน Labels
+                labels: [
+                    'นักศึกษา (student)',
+                    'อาจารย์ (teacher)',
+                    'เจ้าหน้าที่ (staff)',
+                    'อื่นๆ (other)'
+                ],
+                datasets: [{
+                    label: 'จำนวน (คน)',
+                    // (แก้ไข) เปลี่ยน Data
+                    data: [
+                        statusData.student,
+                        statusData.teacher,
+                        statusData.staff,
+                        statusData.other
+                    ],
+                    // (แก้ไข) เพิ่มสี
+                    backgroundColor: [
+                        'rgba(22, 163, 74, 0.7)', /* เขียว */
+                        'rgba(59, 130, 246, 0.7)', /* น้ำเงิน */
+                        'rgba(249, 115, 22, 0.7)', /* ส้ม */
+                        'rgba(107, 114, 128, 0.7)' /* เทา */
+                    ],
+                    borderColor: [
+                        'rgba(22, 163, 74, 1)',
+                        'rgba(37, 99, 235, 1)',
+                        'rgba(217, 70, 24, 1)',
+                        'rgba(75, 85, 99, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: chartTextColor // (กำหนดสีตัวอักษร)
+                        }
                     }
-                })
-                .catch(error => {
-                    Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                }
+            }
+        });
+
+        // (5) ทำให้กราฟเปลี่ยนสีตัวอักษร เมื่อกดปุ่ม Toggle
+        try {
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            if (themeToggleBtn) {
+                themeToggleBtn.addEventListener('click', function() {
+                    setTimeout(() => {
+                        const isDarkMode = document.body.classList.contains('dark-mode');
+                        const newColor = isDarkMode ? '#E5E7EB' : '#6C757D';
+
+                        if (userRoleChart) {
+                            userRoleChart.options.plugins.legend.labels.color = newColor;
+                            userRoleChart.update();
+                        }
+                    }, 10);
                 });
+            }
+        } catch (e) {
+            console.error('Chart theme toggle error:', e);
         }
     });
-}
 </script>
 
 <?php
