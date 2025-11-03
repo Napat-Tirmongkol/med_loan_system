@@ -1305,3 +1305,35 @@ body.dark-mode .header-row:hover .collapse-toggle-btn {
     display: flex;
     justify-content: flex-end;
 }
+
+/* =========================================
+ * (ใหม่) CSS สำหรับ Pagination (แบ่งหน้า)
+ * ========================================= */
+
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    margin-top: 1rem;
+    flex-wrap: wrap; /* (เผื่อจอมือถือ) */
+    gap: 1rem;
+}
+
+.pagination-info {
+    font-weight: bold;
+    color: var(--color-text-muted);
+}
+
+/* (สไตล์สำหรับปุ่มที่ถูกปิดใช้งาน) */
+.pagination-container .btn.disabled {
+    background-color: var(--border-color);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    pointer-events: none; /* (ป้องกันการคลิก) */
+}
+
+body.dark-mode .pagination-container .btn.disabled {
+    background-color: #374151; /* (สีเข้มขึ้นสำหรับ Dark Mode) */
+    color: #6b7280;
+}

@@ -143,13 +143,13 @@ include('includes/header.php');
                         <td><?php echo htmlspecialchars($row['equipment_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['borrower_name'] ?? '[N/A]'); ?></td>
                         <td>
-                            <?php echo date('d/m/Y H:i', strtotime($row['borrow_date'])); ?>
+                            <?php echo date('d/m/Y h:i A', strtotime($row['borrow_date'])); ?>
                         </td>
                         <td>
                             <?php echo date('d/m/Y', strtotime($row['due_date'])); ?>
                         </td>
                         <td>
-                            <?php echo $row['return_date'] ? date('d/m/Y H:i', strtotime($row['return_date'])) : '-'; ?>
+                            <?php echo $row['return_date'] ? date('d/m/Y h:i A', strtotime($row['return_date'])) : '-'; ?>
                         </td>
                         <td>
                             <?php echo htmlspecialchars($row['staff_name'] ?? '[N/A]'); ?>
