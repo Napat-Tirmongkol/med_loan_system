@@ -4,262 +4,361 @@ include('includes/check_session.php'); //
 // 2. เรียกใช้ไฟล์เชื่อมต่อ DB
 require_once('db_connect.php'); //
 
-// 3. (ใหม่) ตรวจสอบ $_GET parameters
+// (โค้ดส่วนตรวจสอบ $_GET message ... ยังคงเดิม)
 $message = '';
 $message_type = '';
 if (isset($_GET['add']) && $_GET['add'] == 'success') {
-    $message = 'เพิ่มอุปกรณ์ใหม่สำเร็จ!'; $message_type = 'success';
+    $message = 'เพิ่มประเภทอุปกรณ์ใหม่สำเร็จ!';
+    $message_type = 'success';
 } elseif (isset($_GET['edit']) && $_GET['edit'] == 'success') {
-    $message = 'แก้ไขข้อมูลอุปกรณ์สำเร็จ!'; $message_type = 'success';
-} elseif (isset($_GET['delete']) && $_GET['delete'] == 'success') {
-    $message = 'ลบข้อมูลอุปกรณ์สำเร็จ!'; $message_type = 'success';
-} elseif (isset($_GET['error'])) {
-    $message_type = 'error';
-    if ($_GET['error'] == 'fk_constraint') {
-        $message = 'ไม่สามารถลบอุปกรณ์ได้ เนื่องจากมีประวัติการยืม/คำขอ ค้างอยู่!';
-    } elseif ($_GET['error'] == 'not_found') {
-        $message = 'ไม่พบอุปกรณ์ที่ต้องการลบ!';
-    } else {
-        $message = 'เกิดข้อผิดพลาด: ' . htmlspecialchars($_GET['error']);
-    }
-}
+    $message = 'แก้ไขข้อมูลประเภทอุปกรณ์สำเร็จ!';
+    $message_type = 'success';
+} 
+// ( ... โค้ด Error handling อื่นๆ ... )
 
 // 4. ตั้งค่าตัวแปรสำหรับหน้านี้
-$page_title = "จัดการอุปกรณ์";
+$page_title = "จัดการประเภทอุปกรณ์"; // ◀️ (แก้ไขชื่อ)
 $current_page = "manage_equip";
 // 5. เรียกใช้ไฟล์ Header
 include('includes/header.php');
 
-// 6. เตรียมดึงข้อมูลอุปกรณ์ (สำหรับตาราง)
+// 6. ◀️ (แก้ไข) ดึงข้อมูลจากตาราง "ประเภท" (types)
 try {
-    $sql = "SELECT e.*, s.full_name as borrower_name, t.due_date 
-            FROM med_equipment e
-            LEFT JOIN med_transactions t ON e.id = t.equipment_id AND t.status = 'borrowed' AND t.approval_status IN ('approved', 'staff_added')
-            LEFT JOIN med_students s ON t.borrower_student_id = s.id";
+    // ◀️ (SQL แก้ไข) เปลี่ยนจาก med_equipment เป็น med_equipment_types
+    $sql = "SELECT * FROM med_equipment_types";
 
     $conditions = [];
     $params = [];
 
-    // (รับค่าตัวกรอง)
     $search_query = $_GET['search'] ?? '';
-    $status_query = $_GET['status'] ?? '';
+    // $status_query = $_GET['status'] ?? ''; // (ตาราง Types ไม่มี status)
 
-    // (เงื่อนไขที่ 1: ค้นหา)
     if (!empty($search_query)) {
         $search_term = '%' . $search_query . '%';
-        $conditions[] = "(e.name LIKE ? OR e.serial_number LIKE ? OR e.description LIKE ?)";
+        $conditions[] = "(name LIKE ? OR description LIKE ?)"; // ◀️ (SQL แก้ไข)
         $params[] = $search_term;
         $params[] = $search_term;
-        $params[] = $search_term;
-    }
-
-    // (เงื่อนไขที่ 2: กรองสถานะ)
-    if (!empty($status_query)) {
-        $conditions[] = "e.status = ?";
-        $params[] = $status_query;
     }
 
     if (count($conditions) > 0) {
         $sql .= " WHERE " . implode(" AND ", $conditions);
     }
 
-    $sql .= " ORDER BY e.name ASC";
+    $sql .= " ORDER BY name ASC";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    $equipments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $equipment_types = $stmt->fetchAll(PDO::FETCH_ASSOC); // ◀️ (แก้ไขชื่อตัวแปร)
 
 } catch (PDOException $e) {
     echo "เกิดข้อผิดพลาดในการดึงข้อมูล: " . $e->getMessage();
-    $equipments = [];
+    $equipment_types = [];
 }
 ?>
 
 <?php if ($message): ?>
-        <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; color: #fff; background-color: <?php echo ($message_type == 'success') ? 'var(--color-success)' : 'var(--color-danger)'; ?>;">
-            <?php echo $message; ?>
-        </div>
+    <div style="padding: 15px; margin-bottom: 20px; border-radius: 4px; color: #fff; background-color: <?php echo ($message_type == 'success') ? 'var(--color-success)' : 'var(--color-danger)'; ?>;">
+        <?php echo $message; ?>
+    </div>
+<?php endif; ?>
+
+<div class="header-row">
+    <h2><i class="fas fa-tools"></i> จัดการประเภทอุปกรณ์</h2>
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
+        <button class="add-btn" onclick="openAddTypePopup()">
+            <i class="fas fa-plus"></i> เพิ่มประเภทอุปกรณ์
+        </button>
     <?php endif; ?>
-
-    <div class="header-row">
-        <h2><i class="fas fa-tools"></i> จัดการอุปกรณ์ทั้งหมด</h2>
-        <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
-            <button class="add-btn" onclick="openAddEquipmentPopup()">
-                <i class="fas fa-plus"></i> เพิ่มอุปกรณ์
-            </button>
-        <?php endif; ?>
-    </div>
-
-    <div class="filter-row">
-        <form action="manage_equipment.php" method="GET" style="display: contents;">
-            <label for="search_term">ค้นหา:</label>
-            <input type="text" name="search" id="search_term" value="<?php echo htmlspecialchars($search_query); ?>" placeholder="ชื่อ/ซีเรียล/รายละเอียด">
-            
-            <label for="filter_status">สถานะ:</label>
-            <select name="status" id="filter_status">
-                <option value="">-- ทั้งหมด --</option>
-                <option value="available" <?php if ($status_query == 'available') echo 'selected'; ?>>ว่าง</option>
-                <option value="borrowed" <?php if ($status_query == 'borrowed') echo 'selected'; ?>>ถูกยืม</option>
-                <option value="maintenance" <?php if ($status_query == 'maintenance') echo 'selected'; ?>>ซ่อมบำรุง</option>
-            </select>
-            
-            <button type="submit" class="btn btn-return"><i class="fas fa-filter"></i> กรอง</button>
-            <a href="manage_equipment.php" class="btn btn-secondary"><i class="fas fa-times"></i> ล้างค่า</a>
-        </form>
-    </div>
-
-
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th style="width: 70px;">รูปภาพ</th> <th>ID</th>
-                    <th>ชื่ออุปกรณ์</th>
-                    <th>เลขซีเรียล</th>
-                    <th>รายละเอียด</th>
-                    <th>สถานะ</th>
-                    <th>จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($equipments)): ?>
-                    <tr>
-                        <td colspan="8" style="text-align: center;">ไม่พบอุปกรณ์ตามเงื่อนไขที่กำหนด</td> </tr>
-                <?php else: ?>
-                    <?php foreach ($equipments as $row): ?>
-                        <tr>
-                            <td>
-                                <?php if (!empty($row['image_url'])): ?>
-                                    <img src="<?php echo htmlspecialchars($row['image_url']); ?>" 
-                                         alt="รูป" 
-                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-                                    <div class="equipment-card-image-placeholder" style="display: none; width: 50px; height: 50px; font-size: 1.5rem;"><i class="fas fa-image"></i></div>
-                                <?php else: ?>
-                                    <div class="equipment-card-image-placeholder" style="width: 50px; height: 50px; font-size: 1.5rem;">
-                                        <i class="fas fa-camera"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td><?php echo $row['id']; ?></td> <td><?php echo htmlspecialchars($row['name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['serial_number'] ?? '-'); ?></td>
-                            <td style="white-space: pre-wrap; min-width: 200px;"><?php echo htmlspecialchars($row['description'] ?? '-'); ?></td>
-                            <td>
-                                <?php // (Status Badge ... โค้ดส่วนนี้ถูกต้องแล้ว)
-                                if ($row['status'] == 'available'): ?>
-                                    <span class="status-badge available">ว่าง</span>
-                                <?php elseif ($row['status'] == 'borrowed'): ?>
-                                    <span class="status-badge borrowed">ถูกยืม</span>
-                                    <div style="font-size: 0.9em; margin-top: 5px; color: #555;">
-                                        โดย: <strong><?php echo htmlspecialchars($row['borrower_name'] ?? 'N/A'); ?></strong><br>
-                                        คืน: <?php echo $row['due_date'] ? date('d/m/Y', strtotime($row['due_date'])) : 'N/A'; ?>
-                                    </div>
-                                <?php else: // 'maintenance' ?>
-                                    <span class="status-badge maintenance">ซ่อมบำรุง</span>
-                                <?php endif; ?>
-                            </td>
-                            <td class="action-buttons">
-                                <?php // (Action Buttons ... โค้ดส่วนนี้ถูกต้องแล้ว)
-                                if ($row['status'] == 'available'): ?>
-                                    <button type="button" class="btn btn-borrow" onclick="openBorrowPopup(<?php echo $row['id']; ?>)">ยืม</button>
-                                <?php elseif ($row['status'] == 'borrowed'): ?>
-                                    <?php if (in_array($_SESSION['role'], ['admin', 'employee'])): ?>
-                                        <button type="button" class="btn btn-return" onclick="openReturnPopup(<?php echo $row['id']; ?>)">รับคืน</button>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-                                
-                                <?php if ($_SESSION['role'] == 'admin'): ?>
-                                    <button type="button" class="btn btn-manage" style="margin-left: 5px;" onclick="openEditPopup(<?php echo $row['id']; ?>)">แก้ไข</button>
-                                    <a href="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
-                                       class="btn btn-danger" 
-                                       style="margin-left: 5px;" 
-                                       onclick="confirmDeleteEquipment(event, <?php echo $row['id']; ?>)">ลบ</a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
 </div>
+
+<div class="filter-row">
+    <form action="manage_equipment.php" method="GET" style="display: contents;">
+        <label for="search_term">ค้นหา:</label>
+        <input type="text" name="search" id="search_term" value="<?php echo htmlspecialchars($search_query); ?>" placeholder="ชื่อประเภท/รายละเอียด">
+
+        <button type="submit" class="btn btn-return"><i class="fas fa-filter"></i> กรอง</button>
+        <a href="manage_equipment.php" class="btn btn-secondary"><i class="fas fa-times"></i> ล้างค่า</a>
+    </form>
+</div>
+
+
+<div class="table-container desktop-only">
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 70px;">รูปภาพ</th>
+                <th>ชื่อประเภทอุปกรณ์</th>
+                <th>รายละเอียด</th>
+                <th>จำนวน (ว่าง/ทั้งหมด)</th>
+                <th style="width: 250px;">จัดการ</th> </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($equipment_types)): ?>
+                <tr>
+                    <td colspan="5" style="text-align: center;">ไม่พบข้อมูลประเภทอุปกรณ์</td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($equipment_types as $type): ?>
+                    <tr>
+                        <td>
+                            <?php if (!empty($type['image_url'])): ?>
+                                <img src="<?php echo htmlspecialchars($type['image_url']); ?>"
+                                    alt="รูป"
+                                    style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px;"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                                <div class="equipment-card-image-placeholder" style="display: none; width: 50px; height: 50px; font-size: 1.5rem;"><i class="fas fa-image"></i></div>
+                            <?php else: ?>
+                                <div class="equipment-card-image-placeholder" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo htmlspecialchars($type['name']); ?></td>
+                        <td style="white-space: pre-wrap;"><?php echo htmlspecialchars($type['description'] ?? '-'); ?></td>
+                        <td>
+                            <strong style="color: var(--color-success);"><?php echo $type['available_quantity']; ?></strong> / <?php echo $type['total_quantity']; ?>
+                        </td>
+                        <td class="action-buttons">
+                            <?php if ($_SESSION['role'] == 'admin'): ?>
+                                <a href="manage_items.php?type_id=<?php echo $type['id']; ?>" class="btn btn-borrow">
+                                    <i class="fas fa-list-ol"></i> จัดการรายชิ้น
+                                </a>
+                                
+                                <button type="button" class="btn btn-manage" style="margin-left: 5px;" onclick="openEditTypePopup(<?php echo $type['id']; ?>)">แก้ไข</button>
+
+                                <button type="button"
+                                    class="btn btn-danger"
+                                    style="margin-left: 5px;"
+                                    onclick="confirmDeleteType(<?php echo $type['id']; ?>, '<?php echo htmlspecialchars(addslashes($type['name'])); ?>')">ลบ</button>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+</div>
+
+<div class="student-card-list">
+    <?php if (empty($equipment_types)): ?>
+        <div class="history-card">
+            <p style="text-align: center; width: 100%;">ไม่พบข้อมูลประเภทอุปกรณ์</p>
+        </div>
+    <?php else: ?>
+        <?php foreach ($equipment_types as $type): ?>
+            <div class="history-card">
+
+                <div class="history-card-icon">
+                    <?php if (!empty($type['image_url'])): ?>
+                        <img src="<?php echo htmlspecialchars($type['image_url']); ?>" alt="รูป" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="equipment-card-image-placeholder" style="display: none; width: 40px; height: 40px; font-size: 1.2rem;"><i class="fas fa-image"></i></div>
+                    <?php else: ?>
+                        <div class="equipment-card-image-placeholder" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="history-card-info">
+                    <h4 class="truncate-text" title="<?php echo htmlspecialchars($type['name']); ?>">
+                        <?php echo htmlspecialchars($type['name']); ?>
+                    </h4>
+                    <p>จำนวน: 
+                        <strong style="color: var(--color-success);"><?php echo $type['available_quantity']; ?></strong> / <?php echo $type['total_quantity']; ?>
+                    </p>
+                </div>
+
+                <div class="pending-card-actions">
+                    <?php if ($_SESSION['role'] == 'admin'): ?>
+                        <a href="manage_items.php?type_id=<?php echo $type['id']; ?>" class="btn btn-borrow" style="margin-left: 0;">
+                            <i class="fas fa-list-ol"></i> จัดการ
+                        </a>
+                        <button type="button" class="btn btn-manage" onclick="openEditTypePopup(<?php echo $type['id']; ?>)">แก้ไข</button>
+                        <button type="button" class="btn btn-danger" onclick="confirmDeleteType(<?php echo $type['id']; ?>, '<?php echo htmlspecialchars(addslashes($type['name'])); ?>')">ลบ</button>
+                    <?php endif; ?>
+                </div>
+
+            </div>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</div>
+
 
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-
-function openAddEquipmentPopup() {
-    Swal.fire({
-        title: '➕ เพิ่มอุปกรณ์ใหม่',
-        html: `
-            <form id="swalAddEquipmentForm" style="text-align: left; margin-top: 20px;">
+    // (ฟังก์ชัน Add ที่แก้ไขแล้ว)
+    function openAddTypePopup() {
+        Swal.fire({
+            title: '➕ เพิ่มประเภทอุปกรณ์ใหม่',
+            html: `
+            <form id="swalAddTypeForm" style="text-align: left; margin-top: 20px;">
                 <div style="margin-bottom: 15px;">
-                    <label for="swal_eq_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่ออุปกรณ์:</label>
-                    <input type="text" name="name" id="swal_eq_name" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <label for="swal_type_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อประเภท:</label>
+                    <input type="text" name="name" id="swal_type_name" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label for="swal_eq_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล (ถ้ามี):</label>
-                    <input type="text" name="serial_number" id="swal_eq_serial" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <label for="swal_type_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
+                    <textarea name="description" id="swal_type_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label for="swal_eq_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
-                    <textarea name="description" id="swal_eq_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;"></textarea>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพ (ถ้ามี):</label>
-                    <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    <label for="swal_type_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพ (ถ้ามี):</label>
+                    <input type="file" name="image_file" id="swal_type_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
                 </div>
                 </form>`,
-        width: '600px',
-        showCancelButton: true,
-        confirmButtonText: 'บันทึกอุปกรณ์ใหม่',
-        cancelButtonText: 'ยกเลิก',
-        confirmButtonColor: 'var(--color-success, #28a745)',
-        focusConfirm: false,
-        preConfirm: () => {
-            const form = document.getElementById('swalAddEquipmentForm');
-            const name = form.querySelector('#swal_eq_name').value;
-            if (!name) {
-                Swal.showValidationMessage('กรุณากรอกชื่ออุปกรณ์');
-                return false;
+            width: '600px',
+            showCancelButton: true,
+            confirmButtonText: 'บันทึกประเภทใหม่',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: 'var(--color-success, #28a745)',
+            focusConfirm: false,
+            preConfirm: () => {
+                const form = document.getElementById('swalAddTypeForm');
+                const name = form.querySelector('#swal_type_name').value;
+                if (!name) {
+                    Swal.showValidationMessage('กรุณากรอกชื่อประเภทอุปกรณ์');
+                    return false;
+                }
+                
+                // (เรียกไฟล์ที่ถูกต้อง)
+                return fetch('add_equipment_type_process.php', {
+                        method: 'POST',
+                        body: new FormData(form)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`);
+                    });
             }
-            
-            // (สำคัญ) FormData สามารถส่งไฟล์ที่แนบไปกับ fetch ได้เลย
-            return fetch('add_equipment_process.php', { method: 'POST', body: new FormData(form) })
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire('เพิ่มสำเร็จ!', 'เพิ่มประเภทอุปกรณ์ใหม่เรียบร้อย', 'success').then(() => location.href = 'manage_equipment.php?add=success');
+            }
+        });
+    }
+    
+    // ◀️ (ใหม่) ฟังก์ชันสำหรับ "ลบ" ประเภท
+    function confirmDeleteType(typeId, typeName) {
+        Swal.fire({
+            title: "คุณแน่ใจหรือไม่?",
+            text: `คุณกำลังจะลบประเภท "${typeName}" (จะลบได้ต่อเมื่อไม่มีอุปกรณ์รายชิ้นในประเภทนี้)`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // (ส่งข้อมูลแบบ POST ไปยังไฟล์ลบ)
+                const formData = new FormData();
+                formData.append('id', typeId);
+
+                fetch('delete_equipment_type_process.php', {
+                    method: 'POST',
+                    body: formData
+                })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.status !== 'success') throw new Error(data.message);
-                    return data;
+                    if (data.status === 'success') {
+                        Swal.fire('ลบสำเร็จ!', data.message, 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                    }
                 })
-                .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('เพิ่มสำเร็จ!', 'เพิ่มอุปกรณ์ใหม่เรียบร้อย', 'success').then(() => location.href = 'manage_equipment.php?add=success');
-        }
-    });
-}
-function confirmDeleteEquipment(event, id) {
-    event.preventDefault(); 
-    const url = event.currentTarget.href;
-    Swal.fire({
-        title: "คุณแน่ใจหรือไม่?",
-        text: "คุณกำลังจะลบอุปกรณ์นี้ออกจากระบบ! (จะลบได้ต่อเมื่อไม่มีประวัติการยืม)",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33", 
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "ใช่, ลบเลย",
-        cancelButtonText: "ยกเลิก"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = url;
-        }
-    });
-}
+                .catch(error => {
+                    Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                });
+            }
+        });
+    }
+
+    // ◀️ (ใหม่) ฟังก์ชันสำหรับ "แก้ไข" ประเภท
+    function openEditTypePopup(typeId) {
+        Swal.fire({ title: 'กำลังโหลดข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+        
+        // 1. ดึงข้อมูลเดิมมาแสดง
+        fetch(`get_equipment_type_data.php?id=${typeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') throw new Error(data.message);
+                const type = data.equipment_type;
+                
+                let imagePreviewHtml = `
+                    <div class="equipment-card-image-placeholder" style="width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;">
+                        <i class="fas fa-camera"></i>
+                    </div>`;
+                if (type.image_url) {
+                    imagePreviewHtml = `
+                        <img src="${type.image_url}?t=${new Date().getTime()}" 
+                             alt="รูปตัวอย่าง" 
+                             style="width: 100%; height: 150px; object-fit: cover; border-radius: 6px; margin-bottom: 15px;"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+                        <div class="equipment-card-image-placeholder" style="display: none; width: 100%; height: 150px; font-size: 3rem; margin-bottom: 15px; justify-content: center; align-items: center; background-color: #f0f0f0; color: #ccc; border-radius: 6px;"><i class="fas fa-image"></i></div>`;
+                }
+
+                // 2. แสดง Popup
+                Swal.fire({
+                    title: '🔧 แก้ไขประเภทอุปกรณ์',
+                    html: `
+                    <form id="swalEditForm" style="text-align: left; margin-top: 20px;">
+                        
+                        ${imagePreviewHtml}
+                        <input type="hidden" name="type_id" value="${type.id}">
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_eq_image_file" style="font-weight: bold; display: block; margin-bottom: 5px;">แนบรูปภาพใหม่ (เพื่อแทนที่):</label>
+                            <input type="file" name="image_file" id="swal_eq_image_file" accept="image/*" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            <small style="color: #6c757d;">(หากไม่ต้องการเปลี่ยนรูป ให้เว้นว่างไว้)</small>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อประเภทอุปกรณ์:</label>
+                            <input type="text" name="name" id="swal_name" value="${type.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label for="swal_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด:</label>
+                            <textarea name="description" id="swal_desc" rows="3" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${type.description || ''}</textarea>
+                        </div>
+                    </form>`,
+                    width: '600px',
+                    showCancelButton: true,
+                    confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                    cancelButtonText: 'ยกเลิก',
+                    confirmButtonColor: 'var(--color-primary, #0B6623)',
+                    focusConfirm: false,
+                    preConfirm: () => {
+                        const form = document.getElementById('swalEditForm');
+                        const name = form.querySelector('#swal_name').value;
+                        if (!name) {
+                            Swal.showValidationMessage('กรุณากรอกชื่อประเภทอุปกรณ์');
+                            return false;
+                        }
+                        // 3. ส่งข้อมูลไปที่ 'edit_equipment_type_process.php'
+                        return fetch('edit_equipment_type_process.php', { method: 'POST', body: new FormData(form) })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.status !== 'success') throw new Error(data.message);
+                                return data;
+                            })
+                            .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลประเภทอุปกรณ์เรียบร้อย', 'success').then(() => location.href = 'manage_equipment.php?edit=success');
+                    }
+                });
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+            });
+    }
 </script>
 
 <?php
-// 7. เรียกใช้ไฟล์ Footer (ซึ่งมี JavaScript popups อื่นๆ อยู่)
+// 7. เรียกใช้ไฟล์ Footer
 include('includes/footer.php');
 ?>

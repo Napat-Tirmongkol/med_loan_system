@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 3. เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูล
     require_once('db_connect.php');
+    require_once('includes/log_function.php');
 
     // 4. รับค่าจากฟอร์ม
     $username = $_POST['username'];
@@ -24,11 +25,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 7. ตรวจสอบว่า: (1) เจอผู้ใช้ และ (2) รหัสผ่านถูกต้อง
         if ($user && password_verify($password, $user['password_hash'])) {
 
+        // (ใหม่) 7.1 ตรวจสอบว่าบัญชีถูกระงับหรือไม่
+        if (isset($user['account_status']) && $user['account_status'] == 'disabled') {
+            // รหัสถูก แต่บัญชีถูกระงับ
+            header("Location: login.php?error=disabled");
+            exit;
+        }
+
             // 8. Log in สำเร็จ! "แจกบัตรพนักงาน"
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['role'] = $user['role']; 
 
+            $log_desc = "พนักงาน '{$user['full_name']}' (Username: {$user['username']}) ได้เข้าสู่ระบบ (ผ่าน Password)";
+            log_action($pdo, $user['id'], 'login_password', $log_desc);
+            
             // 9. ส่งกลับไปหน้า index.php
             header("Location: index.php");
             exit;
@@ -40,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
     } catch (PDOException $e) {
-        die("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้: " . $e->getMessage());
+        die("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้: " . $e->getMessage()); // ◀️ (แก้ไข)
     }
 
 } else {

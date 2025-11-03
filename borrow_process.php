@@ -17,11 +17,11 @@ $response = ['status' => 'error', 'message' => 'เกิดข้อผิด�
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 5. รับข้อมูลจากฟอร์ม
-    $equipment_id = isset($_POST['equipment_id']) ? (int)$_POST['equipment_id'] : 0; 
+    $type_id = isset($_POST['type_id']) ? (int)$_POST['type_id'] : 0; 
     $borrower_student_id = isset($_POST['borrower_id']) ? (int)$_POST['borrower_id'] : 0;
     $due_date = isset($_POST['due_date']) ? $_POST['due_date'] : null;
 
-    if ($equipment_id == 0 || $borrower_student_id == 0 || $due_date == null) {
+    if ($type_id == 0 || $borrower_student_id == 0 || $due_date == null) {
         $response['message'] = 'ข้อมูลไม่ครบถ้วน (ผู้ยืม หรือ วันที่คืน)';
         echo json_encode($response);
         exit;
@@ -31,30 +31,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $pdo->beginTransaction();
 
-        // 6.1 UPDATE อุปกรณ์เป็น 'borrowed'
-        $sql_update = "UPDATE med_equipment SET status = 'borrowed' WHERE id = ? AND status = 'available'";
-        $stmt_update = $pdo->prepare($sql_update);
-        $stmt_update->execute([$equipment_id]);
+        // 6.1 หา item ที่ว่างจาก type นี้
+        $stmt_find_item = $pdo->prepare("SELECT id FROM med_equipment_items WHERE type_id = ? AND status = 'available' LIMIT 1 FOR UPDATE");
+        $stmt_find_item->execute([$type_id]);
+        $available_item_id = $stmt_find_item->fetchColumn();
 
-        if ($stmt_update->rowCount() == 0) {
-            throw new Exception("ไม่สามารถยืมอุปกรณ์ได้ อุปกรณ์อาจถูกยืมไปแล้ว (สถานะไม่ 'available')");
+        if (!$available_item_id) {
+            throw new Exception("ไม่สามารถยืมได้ อุปกรณ์ประเภทนี้ไม่ว่างแล้ว");
         }
 
-        // 6.2 INSERT ประวัติการยืม
+        // 6.2 UPDATE อุปกรณ์ (item) เป็น 'borrowed'
+        $stmt_item = $pdo->prepare("UPDATE med_equipment_items SET status = 'borrowed' WHERE id = ?");
+        $stmt_item->execute([$available_item_id]);
+
+        // 6.3 UPDATE จำนวนในประเภท (type)
+        $stmt_type = $pdo->prepare("UPDATE med_equipment_types SET available_quantity = available_quantity - 1 WHERE id = ? AND available_quantity > 0");
+        $stmt_type->execute([$type_id]);
+
+        // 6.4 INSERT ประวัติการยืม
         $sql_insert = "INSERT INTO med_transactions 
-                        (equipment_id, borrower_student_id, due_date, status, approval_status, quantity, lending_staff_id) 
+                        (equipment_id, equipment_type_id, borrower_student_id, due_date, status, approval_status, quantity, lending_staff_id) 
                        VALUES 
-                        (?, ?, ?, 'borrowed', 'staff_added', 1, ?)"; // ◀️ (เพิ่ม lending_staff_id)
+                        (?, ?, ?, ?, 'borrowed', 'staff_added', 1, ?)";
         $stmt_insert = $pdo->prepare($sql_insert);
         
         $admin_user_id = $_SESSION['user_id'] ?? null; // ◀️ (ดึง ID Admin ที่กดยืม)
         
-        $stmt_insert->execute([$equipment_id, $borrower_student_id, $due_date, $admin_user_id]);
+        $stmt_insert->execute([$available_item_id, $type_id, $borrower_student_id, $due_date, $admin_user_id]);
 
         // ◀️ --- (เพิ่มส่วน Log) --- ◀️
         if ($stmt_insert->rowCount() > 0) {
             $admin_user_name = $_SESSION['full_name'] ?? 'System';
-            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้บันทึกการยืม (EID: {$equipment_id}) ให้กับผู้ใช้ (SID: {$borrower_student_id})";
+            $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้บันทึกการยืม (Type ID: {$type_id}, Item ID: {$available_item_id}) ให้กับผู้ใช้ (SID: {$borrower_student_id})";
             log_action($pdo, $admin_user_id, 'create_borrow_staff', $log_desc);
         }
         // ◀️ --- (จบส่วน Log) --- ◀️
@@ -67,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (Exception $e) {
         $pdo->rollBack(); 
-        $response['message'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
+        $response['message'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

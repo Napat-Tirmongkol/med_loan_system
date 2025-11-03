@@ -37,12 +37,12 @@ try {
                 t.id as transaction_id, 
                 t.borrow_date, 
                 t.due_date,
-                e.name as equipment_name, 
-                e.serial_number as equipment_serial,
+                ei.name as equipment_name, 
+                ei.serial_number as equipment_serial,
                 s.full_name as borrower_name, /* (มาจาก med_students) */
                 s.phone_number as borrower_contact /* (มาจาก med_students) */
             FROM med_transactions t
-            JOIN med_equipment e ON t.equipment_id = e.id
+            JOIN med_equipment_items ei ON t.equipment_id = ei.id
             /* (JOIN ใหม่) ใช้ borrower_student_id เชื่อมไปยัง med_students */
            /* (JOIN ... ) */
             LEFT JOIN med_students s ON t.borrower_student_id = s.id
@@ -64,7 +64,7 @@ try {
     }
 
 } catch (PDOException $e) {
-    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 6. ส่งคำตอบ (JSON) กลับไปให้ JavaScript

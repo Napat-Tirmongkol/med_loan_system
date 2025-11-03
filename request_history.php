@@ -2,12 +2,9 @@
 // request_history.php (หน้าประวัติคำขอ - Layout ใหม่)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-// (⚠️ โค้ดสำหรับ Development Mode ⚠️)
 @session_start(); 
-// include('includes/check_student_session.php'); 
-$_SESSION['student_id'] = 1; 
-$_SESSION['student_full_name'] = "ผู้ใช้ทดสอบ";
-// (⚠️ จบส่วน Development Mode ⚠️)
+include('includes/check_student_session.php'); // (◀️ เปิดยาม)
+// (⚠️ ลบส่วน Development Mode ออกแล้ว ⚠️)
 
 require_once('db_connect.php'); //
 
@@ -16,9 +13,10 @@ $student_id = $_SESSION['student_id'];
 
 // 3. (Query เฉพาะประวัติ)
 try {
-    $sql_history = "SELECT t.*, e.name as equipment_name, e.serial_number 
+    $sql_history = "SELECT t.*, et.name as equipment_name
                     FROM med_transactions t
-                    JOIN med_equipment e ON t.equipment_id = e.id
+                    -- ◀️ (แก้ไข) เปลี่ยน t.equipment_type_id เป็น t.type_id
+                    JOIN med_equipment_types et ON t.type_id = et.id
                     WHERE t.borrower_student_id = ? 
                       AND (t.status = 'returned' OR t.approval_status IN ('pending', 'rejected'))
                     ORDER BY t.borrow_date DESC, t.id DESC";

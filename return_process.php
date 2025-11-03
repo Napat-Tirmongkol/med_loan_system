@@ -32,18 +32,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     try {
         $pdo->beginTransaction();
 
-        // 6.1 UPDATE อุปกรณ์เป็น 'available'
-        $sql_update_equip = "UPDATE med_equipment SET status = 'available' WHERE id = ? AND status = 'borrowed'";
-        $stmt_update_equip = $pdo->prepare($sql_update_equip);
-        $stmt_update_equip->execute([$equipment_id]);
+        // 6.1 UPDATE อุปกรณ์ (item) เป็น 'available'
+        $sql_update_item = "UPDATE med_equipment_items SET status = 'available' WHERE id = ? AND status = 'borrowed'";
+        $stmt_update_item = $pdo->prepare($sql_update_item);
+        $stmt_update_item->execute([$equipment_id]);
         
-        // 6.2 UPDATE ประวัติการยืมเป็น 'returned'
+        // 6.2 UPDATE ประวัติการยืม (transaction) เป็น 'returned'
         $sql_update_trans = "UPDATE med_transactions SET status = 'returned', return_date = NOW() WHERE id = ? AND status = 'borrowed'";
         $stmt_update_trans = $pdo->prepare($sql_update_trans);
         $stmt_update_trans->execute([$transaction_id]);
         
-        // 6.3 ตรวจสอบว่าสำเร็จทั้งคู่
-        if ($stmt_update_equip->rowCount() == 0 || $stmt_update_trans->rowCount() == 0) {
+        // 6.3 (ใหม่) UPDATE จำนวนในประเภท (type)
+        if ($stmt_update_item->rowCount() > 0) {
+            $stmt_get_type = $pdo->prepare("SELECT type_id FROM med_equipment_items WHERE id = ?");
+            $stmt_get_type->execute([$equipment_id]);
+            $type_id = $stmt_get_type->fetchColumn();
+            if ($type_id) {
+                $stmt_type = $pdo->prepare("UPDATE med_equipment_types SET available_quantity = available_quantity + 1 WHERE id = ?");
+                $stmt_type->execute([$type_id]);
+            }
+        }
+
+        // 6.4 ตรวจสอบว่าสำเร็จ
+        if ($stmt_update_item->rowCount() == 0 || $stmt_update_trans->rowCount() == 0) {
             throw new Exception("ไม่สามารถคืนอุปกรณ์ได้ (อาจถูกคืนไปแล้ว หรือข้อมูลผิดพลาด)");
         }
 

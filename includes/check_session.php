@@ -1,9 +1,7 @@
 <?php
-// 1. เริ่ม Session ก่อนเสมอ (เพื่อตรวจสอบ $_SESSION)
-//    เราจะใช้ @session_start() เพื่อป้องกันการ error หาก session_start() ถูกเรียกไปแล้ว
-@session_start();
+@session_start(); // ◀️ (ย้ายมาไว้บนสุด)
 
-// 2. ตรวจสอบว่า "บัตรพนักงาน" (Session 'user_id') ถูกสร้างหรือยัง
+// 1. ตรวจสอบว่า "บัตรพนักงาน" (Session 'user_id') ถูกสร้างหรือยัง
 if (!isset($_SESSION['user_id'])) {
     
     // 3. ถ้ายังไม่มี (ยังไม่ Log in)

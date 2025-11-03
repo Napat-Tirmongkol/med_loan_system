@@ -18,7 +18,7 @@ try {
     $response['staff'] = $staff_list;
 
 } catch (PDOException $e) {
-    $response['message'] = $e->getMessage();
+    $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 echo json_encode($response);

@@ -28,11 +28,11 @@ $sql_base = "SELECT
                 t.return_date,
                 t.status as transaction_status,
                 t.approval_status,
-                e.name as equipment_name, 
+                et.name as equipment_name, 
                 s.full_name as borrower_name,
                 u_staff.full_name as staff_name
             FROM med_transactions t
-            JOIN med_equipment e ON t.equipment_id = e.id
+            LEFT JOIN med_equipment_types et ON t.equipment_type_id = et.id
             LEFT JOIN med_students s ON t.borrower_student_id = s.id
             LEFT JOIN med_users u_staff ON t.lending_staff_id = u_staff.id
             ";
@@ -143,13 +143,13 @@ include('includes/header.php');
                         <td><?php echo htmlspecialchars($row['equipment_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['borrower_name'] ?? '[N/A]'); ?></td>
                         <td>
-                            <?php echo date('d/m/Y H:i', strtotime($row['borrow_date'])); ?>
+                            <?php echo date('d/m/Y h:i A', strtotime($row['borrow_date'])); ?>
                         </td>
                         <td>
                             <?php echo date('d/m/Y', strtotime($row['due_date'])); ?>
                         </td>
                         <td>
-                            <?php echo $row['return_date'] ? date('d/m/Y H:i', strtotime($row['return_date'])) : '-'; ?>
+                            <?php echo $row['return_date'] ? date('d/m/Y h:i A', strtotime($row['return_date'])) : '-'; ?>
                         </td>
                         <td>
                             <?php echo htmlspecialchars($row['staff_name'] ?? '[N/A]'); ?>

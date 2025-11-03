@@ -29,8 +29,8 @@ if ($equipment_id == 0) {
 }
 
 try {
-    // 6. ดึงข้อมูลอุปกรณ์
-    $stmt = $pdo->prepare("SELECT * FROM med_equipment WHERE id = ?");
+    // 6. (แก้ไข) ดึงข้อมูลประเภทอุปกรณ์
+    $stmt = $pdo->prepare("SELECT * FROM med_equipment_types WHERE id = ?");
     $stmt->execute([$equipment_id]);
     $equipment = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -43,7 +43,7 @@ try {
     }
 
 } catch (PDOException $e) {
-    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 7. ส่งคำตอบ (JSON) กลับไปให้ JavaScript

@@ -101,13 +101,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = 'บันทึกการเปลี่ยนแปลงสำเร็จ';
 
     } catch (PDOException $e) {
-        if ($e->getCode() == '23000') {
+        if ($e->getCode() == '23000') { // ◀️ (แก้ไข)
              $response['message'] = 'เลขซีเรียล (Serial Number) นี้มีในระบบแล้ว';
         } else {
-             $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+             $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
         }
     } catch (Exception $e) {
-         $response['message'] = $e->getMessage();
+         $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

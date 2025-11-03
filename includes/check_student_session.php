@@ -8,10 +8,8 @@
 // 2. ตรวจสอบว่า 'student_id' มีอยู่จริง และ "ไม่ใช่ค่าว่าง" (0, null, "")
 if (empty($_SESSION['student_id'])) {
     
-    // 3. ถ้าไม่มีค่า หรือเป็น 0 (empty() จะดักจับ 0 ได้)
-    //    ให้ล้าง Session เก่า (ถ้ามี)
-    session_unset();
-    session_destroy();
+    // 3. (แก้ไข) ถ้าไม่มีค่า ให้ส่งกลับไปหน้า Login เท่านั้น
+    //    (ห้ามทำลาย Session เพราะอาจจะแค่กำลังโหลดช้า)
     
     // 4. ส่งกลับไปหน้า Login
     header("Location: line_login.php");

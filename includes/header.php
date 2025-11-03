@@ -1,63 +1,88 @@
+<?php
+// includes/check_student_session.php
+// (เวอร์ชันแก้ไข: ลบ session_destroy ออก)
+
+// 1. เริ่ม Session ก่อนเสมอ
+@session_start();
+
+// 2. ตรวจสอบว่า 'student_id' มีอยู่จริง และ "ไม่ใช่ค่าว่าง" (0, null, "")
+if (empty($_SESSION['student_id'])) {
+    
+    // 3. (แก้ไข) ถ้าไม่มีค่า ให้ส่งกลับไปหน้า Login เท่านั้น
+    //    (ห้ามทำลาย Session เพราะอาจจะแค่กำลังโหลดช้า)
+    
+    // 4. ส่งกลับไปหน้า Login
+    header("Location: line_login.php");
+    exit; // จบการทำงาน
+}
+
+// 5. ถ้ามี Session 'student_id' ที่ "ไม่ใช่ 0" (Log in แล้ว)
+//    สคริปต์ก็จะทำงานต่อไปได้
+?>
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($page_title) ? $page_title : 'ระบบยืมคืนอุปกรณ์การแพทย์'; ?></title>
-    <link rel="stylesheet" href="CSS/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    </head>
-
-<body>
-
-    <header class="header"> <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle Menu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h1>MedLoan - ระบบยืมคืนอุปกรณ์การแพทย์</h1>
-        
-        <div class="user-info"> สวัสดี, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
-            (<?php 
-                // (เปลี่ยนการแสดงผล Role)
-                if ($_SESSION['role'] == 'admin') {
-                    echo '<span style="color: var(--color-warning); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>';
-                } elseif ($_SESSION['role'] == 'employee') {
-                    echo '<span style="color: #B7E5CD;">Employee</span>'; // (ใช้สีเขียวมินต์)
-                } else {
-                    echo htmlspecialchars($_SESSION['role']);
+    <title><?php echo isset($page_title) ? $page_title : 'ระบบยืมคืนอุปกรณ์'; ?></title>
+    
+    <script>
+        (function() {
+            try {
+                var theme = localStorage.getItem('theme');
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark-mode');
+                    // (สำหรับ CSS ที่อาจจะใช้ body.dark-mode)
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
+                } else if (theme === 'light') {
+                    // ไม่ต้องทำอะไร (Default)
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    // ถ้าไม่ได้ตั้งค่าไว้ ให้ใช้ค่าของ OS
+                    document.documentElement.classList.add('dark-mode');
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.body.classList.add('dark-mode');
+                    });
                 }
-            ?>)
-            <a href="logout.php" class="btn btn-logout"> <i class="fa-solid fa-arrow-right-from-bracket"></i> ออกจากระบบ
+            } catch (e) {
+                // (กัน Error หาก localStorage ใช้งานไม่ได้)
+                console.error('Failed to apply theme', e);
+            }
+        })();
+    </script>
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="stylesheet" href="CSS/style.css?v=2.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body> <header class="header"> 
+        <h1>MedLoan - (Admin)</h1>
+        
+        <div class="user-info"> 
+            
+            <div class="user-greeting">
+                สวัสดี, <?php echo htmlspecialchars($_SESSION['full_name']); ?>
+                (<?php 
+                    if ($_SESSION['role'] == 'admin') {
+                        echo '<span style="color: var(--color-warning); font-weight: bold;">Admin <i class="fa-solid fa-crown"></i></span>';
+                    } elseif ($_SESSION['role'] == 'employee') {
+                        echo '<span style="color: #B7E5CD;">Employee</span>';
+                    } else {
+                        echo htmlspecialchars($_SESSION['role']);
+                    }
+                ?>)
+            </div>
+
+            <button type="button" class="theme-toggle-btn" id="theme-toggle-btn" title="สลับโหมด">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </button>
+            
+            <a href="logout.php" class="btn btn-logout" title="ออกจากระบบ">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <span class="logout-text">ออกจากระบบ</span>
             </a>
         </div>
     </header>
 
-    <nav class="sidebar">
-        <ul>
-            <li class="<?php echo ($current_page == 'index') ? 'active' : ''; ?>">
-                <a href="index.php"><i class="fas fa-tachometer-alt fa-fw" style="margin-right: 8px;"></i>Dashboard (ภาพรวม)</a>
-            </li>
-
-            <li class="<?php echo ($current_page == 'return') ? 'active' : ''; ?>">
-                <a href="return_dashboard.php"><i class="fas fa-undo-alt fa-fw" style="margin-right: 8px;"></i>คืนอุปกรณ์</a>
-            </li>
-
-            <li class="<?php echo ($current_page == 'manage_equip') ? 'active' : ''; ?>">
-                <a href="manage_equipment.php"><i class="fas fa-tools fa-fw" style="margin-right: 8px;"></i>จัดการอุปกรณ์</a>
-            </li>
-            <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?> <li class="<?php echo ($current_page == 'manage_user') ? 'active' : ''; ?>">
-                    <a href="manage_students.php"><i class="fas fa-users-cog fa-fw" style="margin-right: 8px;"></i>จัดการผู้ใช้งาน</a>
-                </li>
-                <li class="<?php echo ($current_page == 'report') ? 'active' : ''; ?>">
-                    <a href="report_borrowed.php"><i class="fas fa-chart-line fa-fw" style="margin-right: 8px;"></i>รายงาน (การยืม-คืน)</a>
-                </li>
-                
-                <li class="<?php echo ($current_page == 'admin_log') ? 'active' : ''; ?>">
-                    <a href="admin_log.php"><i class="fas fa-history fa-fw" style="margin-right: 8px;"></i>บันทึก Log (Admin)</a>
-                </li>
-            <?php endif; ?>
-        </ul>
-    </nav>
-
-    <main class="content">
+    <main class="content" style="margin-top: 80px;">

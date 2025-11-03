@@ -6,6 +6,12 @@ session_start();
 require_once('line_config.php');
 require_once('db_connect.php'); //
 
+if (!isset($_POST['terms_agree']) || $_POST['terms_agree'] != 'yes') {
+    // (ถ้าไม่ยอมรับ ให้เด้งกลับไปหน้าเดิมพร้อม Error)
+    $_SESSION['form_error'] = 'กรุณากดยอมรับข้อตกลงการใช้งานก่อนดำเนินการต่อ';
+    header("Location: create_profile.php");
+    exit;
+}
 // 1. "ยามเฝ้าประตู"
 //    ต้องมี line_id_to_register ใน Session เท่านั้น
 if (!isset($_SESSION['line_id_to_register']) || $_SERVER["REQUEST_METHOD"] != "POST") {

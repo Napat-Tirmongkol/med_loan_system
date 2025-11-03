@@ -1,14 +1,12 @@
 <?php
 // live_search_equipment.php
-// API สำหรับการค้นหาแบบ Live Search (AJAX)
+// ◀️ (แก้ไข) API นี้จะค้นหาจาก "Types" ที่ว่าง
 
-// (เราใช้ "ยาม" ฝั่งผู้ใช้ เพราะหน้านี้ผู้ใช้เป็นคนเรียก)
 include('includes/check_student_session.php'); 
 require_once('db_connect.php'); 
 
 header('Content-Type: application/json');
 
-// 1. รับคำค้นหา (term) จาก URL (ที่ JavaScript ส่งมา)
 $search_term = $_GET['term'] ?? '';
 
 $response = [
@@ -22,20 +20,19 @@ if (empty($search_term)) {
     exit;
 }
 
-// 2. ค้นหาในฐานข้อมูล
 try {
     $search_param = '%' . $search_term . '%';
     
-    // (ค้นหาเฉพาะของที่ "available" เท่านั้น)
-    $sql = "SELECT id, name, serial_number, image_url, description 
-            FROM med_equipment 
-            WHERE status = 'available' 
-              AND (name LIKE ? OR serial_number LIKE ? OR description LIKE ?)
+    // ◀️ (แก้ไข) ค้นหาจาก med_equipment_types และต้องมีของว่าง (available_quantity > 0)
+    $sql = "SELECT id, name, serial_number, image_url, description, available_quantity
+            FROM med_equipment_types 
+            WHERE available_quantity > 0 
+              AND (name LIKE ? OR description LIKE ?)
             ORDER BY name ASC
-            LIMIT 10"; // (จำกัดผลลัพธ์แค่ 10 รายการ)
+            LIMIT 10"; 
             
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$search_param, $search_param, $search_param]);
+    $stmt->execute([$search_param, $search_param]); // ◀️ (แก้ Parameter)
     $equipments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $response['status'] = 'success';
@@ -43,10 +40,9 @@ try {
     $response['message'] = 'Search successful';
 
 } catch (PDOException $e) {
-    $response['message'] = 'Database Error: ' . $e->getMessage();
+    $response['message'] = 'Database Error: ' . $e->getMessage(); // ◀️ แก้ไข .getMessage
 }
 
-// 3. ส่งผลลัพธ์ (JSON) กลับไป
 echo json_encode($response);
 exit;
 ?>

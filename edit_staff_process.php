@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = 'บันทึกการเปลี่ยนแปลงสำเร็จ';
 
     } catch (Exception $e) {
-        $response['message'] = $e->getMessage();
+        $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

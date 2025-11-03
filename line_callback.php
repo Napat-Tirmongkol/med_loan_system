@@ -3,7 +3,8 @@
 
 session_start();
 require_once('line_config.php');
-require_once('db_connect.php'); //
+require_once('db_connect.php');
+require_once('includes/log_function.php');
 
 // --- (ฟังก์ชัน die_with_error ... เหมือนเดิม) ---
 function die_with_error($message) {
@@ -64,7 +65,7 @@ try {
     }
     $line_user_id = $payload_data['sub'];
 } catch (Exception $e) {
-    die_with_error('ไม่สามารถถอดรหัส ID Token ได้: ' . $e->getMessage());
+    die_with_error('ไม่สามารถถอดรหัส ID Token ได้: ' . $e->getMessage()); // ◀️ (แก้ไข)
 }
 
 // 5. ค้นหาในฐานข้อมูล (เริ่มจาก 'med_users' ก่อน)
@@ -76,12 +77,17 @@ try {
 
     if ($staff_user) {
         // --- สถานการณ์ 0: เจอ! (เป็นพนักงาน/Admin) ---
-        
+        if (isset($staff_user['account_status']) && $staff_user['account_status'] == 'disabled') {
+        die_with_error('บัญชีพนักงานของคุณถูกระงับการใช้งานชั่วคราว กรุณาติดต่อผู้ดูแลระบบ');
+    }
         // สร้าง Session "พนักงาน"
         $_SESSION['user_id'] = $staff_user['id'];
         $_SESSION['full_name'] = $staff_user['full_name'];
         $_SESSION['role'] = $staff_user['role']; 
 
+        $log_desc = "พนักงาน '{$staff_user['full_name']}' (ID: {$staff_user['id']}) ได้เข้าสู่ระบบ (ผ่าน LINE)";
+        log_action($pdo, $staff_user['id'], 'login_line', $log_desc);
+        
         // ส่งไปหน้า Dashboard "Admin"
         header("Location: index.php"); 
         exit;
@@ -118,6 +124,6 @@ try {
     }
 
 } catch (PDOException $e) {
-    die_with_error('เกิดข้อผิดพลาดในการค้นหาฐานข้อมูล: ' . $e->getMessage());
+    die_with_error('เกิดข้อผิดพลาดในการค้นหาฐานข้อมูล: ' . $e->getMessage()); // ◀️ (แก้ไข)
 }
 ?>

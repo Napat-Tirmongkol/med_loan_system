@@ -2,12 +2,9 @@
 // student_dashboard.php (หน้าหลัก - รายการที่ยืมอยู่ - Layout ใหม่)
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-// (⚠️ โค้ดสำหรับ Development Mode - ใช้สำหรับตกแต่งหน้าเว็บ ⚠️)
 @session_start(); 
-// include('includes/check_student_session.php'); // (ปิดยาม)
-$_SESSION['student_id'] = 1; // (จำลองว่าล็อกอินเป็น User ID 1)
-$_SESSION['student_full_name'] = "ผู้ใช้ทดสอบ";
-// (⚠️ จบส่วน Development Mode - อย่าลืมเอากลับคืนตอนใช้งานจริง ⚠️)
+include('includes/check_student_session.php'); // (◀️ เปิดยาม)
+// (⚠️ ลบส่วน Development Mode ออกแล้ว ⚠️)
 
 require_once('db_connect.php'); //
 
@@ -16,9 +13,9 @@ $student_id = $_SESSION['student_id'];
 
 // 3. (Query เฉพาะส่วนที่ยืมอยู่)
 try {
-    $sql_borrowed = "SELECT t.*, e.name as equipment_name, e.serial_number 
+    $sql_borrowed = "SELECT t.*, ei.name as equipment_name, ei.serial_number 
                      FROM med_transactions t
-                     JOIN med_equipment e ON t.equipment_id = e.id
+                     JOIN med_equipment_items ei ON t.equipment_id = ei.id
                      WHERE t.borrower_student_id = ? 
                        AND t.status = 'borrowed'
                        AND t.approval_status IN ('approved', 'staff_added')

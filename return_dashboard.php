@@ -16,14 +16,14 @@ $borrowed_items = [];
 try {
     $sql = "SELECT 
                 t.equipment_id, 
-                e.name as equipment_name, 
-                e.serial_number as equipment_serial,
+                ei.name as equipment_name, 
+                ei.serial_number as equipment_serial,
                 s.full_name as borrower_name, 
                 s.phone_number as borrower_contact,
                 t.borrow_date, 
                 t.due_date
             FROM med_transactions t
-            JOIN med_equipment e ON t.equipment_id = e.id
+            JOIN med_equipment_items ei ON t.equipment_id = ei.id
             LEFT JOIN med_students s ON t.borrower_student_id = s.id
             WHERE t.status = 'borrowed'
               AND t.approval_status IN ('approved', 'staff_added') 
