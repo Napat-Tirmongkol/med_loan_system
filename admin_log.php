@@ -1,6 +1,6 @@
 <?php
 // admin_log.php
-// (อัปเดต: เพิ่มระบบ Pagination)
+// หน้าสำหรับแสดง Log การดำเนินการของ Admin
 
 // 1. "จ้างยาม" และ "เชื่อมต่อ DB"
 include('includes/check_session.php');
@@ -12,22 +12,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
     exit;
 }
 
-// ------------------------------------------------------------------
-// (A) ◀️ (แก้ไข) ส่วนของ Pagination สำหรับ "Admin Actions"
-// ------------------------------------------------------------------
-$logs_per_page = 10; // ◀️ จำนวนรายการต่อหน้าที่เรากำหนดไว้
-$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if ($current_page < 1) {
-    $current_page = 1;
-}
-// (คำนวณ OFFSET สำหรับ SQL)
-$offset = ($current_page - 1) * $logs_per_page;
-$total_admin_logs = 0;
-$total_pages = 1;
-// ------------------------------------------------------------------
-
-
-// 3. (Query ที่ 1) ดึงข้อมูล Sign-in Log (ยังคงแสดงทั้งหมด)
+// 3. (Query ที่ 1) ดึงข้อมูล Sign-in Log
 $signin_logs = [];
 try {
     $sql_signin = "SELECT l.*, u.full_name as admin_name 
@@ -44,35 +29,16 @@ try {
     $log_error = "เกิดข้อผิดพลาดในการดึงข้อมูล Log (Sign-in): " . $e->getMessage();
 }
 
-// 4. (Query ที่ 2) ดึงข้อมูล Admin Log (อื่นๆ) ◀️ (แก้ไขส่วนนี้)
+// 4. (Query ที่ 2) ดึงข้อมูล Admin Log (อื่นๆ)
 $admin_logs = [];
 try {
-    
-    // ◀️ (Query 2.1: นับจำนวน Log ทั้งหมด)
-    $stmt_count = $pdo->prepare("SELECT COUNT(*) 
-                                 FROM med_logs 
-                                 WHERE action NOT IN ('login_password', 'login_line')");
-    $stmt_count->execute();
-    $total_admin_logs = $stmt_count->fetchColumn();
-    $total_pages = ceil($total_admin_logs / $logs_per_page);
-    
-    // (ปรับปรุง $current_page ถ้าผู้ใช้กรอกเลขหน้าเกินจริง)
-    if ($current_page > $total_pages && $total_pages > 0) {
-        $current_page = $total_pages;
-        $offset = ($current_page - 1) * $logs_per_page;
-    }
-
-    // ◀️ (Query 2.2: ดึงข้อมูลแบบแบ่งหน้า)
     $sql_logs = "SELECT l.*, u.full_name as admin_name 
                  FROM med_logs l
                  LEFT JOIN med_users u ON l.user_id = u.id
                  WHERE l.action NOT IN ('login_password', 'login_line')
-                 ORDER BY l.timestamp DESC
-                 LIMIT :limit OFFSET :offset"; // ◀️ ใช้ LIMIT และ OFFSET
+                 ORDER BY l.timestamp DESC";
                  
     $stmt_logs = $pdo->prepare($sql_logs);
-    $stmt_logs->bindParam(':limit', $logs_per_page, PDO::PARAM_INT);
-    $stmt_logs->bindParam(':offset', $offset, PDO::PARAM_INT);
     $stmt_logs->execute();
     $admin_logs = $stmt_logs->fetchAll(PDO::FETCH_ASSOC);
     
@@ -153,7 +119,7 @@ include('includes/header.php');
         <tbody>
             <?php if (empty($admin_logs)): ?>
                 <tr>
-                    <td colspan="4" style="text-align: center;">ไม่พบข้อมูลในหน้านี้</td>
+                    <td colspan="4" style="text-align: center;">ยังไม่มีข้อมูลการดำเนินการใน Log</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($admin_logs as $log): ?>
@@ -170,29 +136,6 @@ include('includes/header.php');
         </tbody>
     </table>
 </div>
-
-<div class="pagination-container">
-    <?php if ($total_pages > 1): ?>
-        
-        <a href="?page=<?php echo $current_page - 1; ?>"
-           class="btn btn-secondary <?php if ($current_page <= 1) echo 'disabled'; ?>"
-           <?php if ($current_page <= 1) echo 'aria-disabled="true"'; ?>>
-            <i class="fas fa-chevron-left"></i> ย้อนกลับ
-        </a>
-
-        <span class="pagination-info">
-            หน้า <?php echo $current_page; ?> / <?php echo $total_pages; ?> (ทั้งหมด <?php echo $total_admin_logs; ?> รายการ)
-        </span>
-
-        <a href="?page=<?php echo $current_page + 1; ?>"
-           class="btn btn-secondary <?php if ($current_page >= $total_pages) echo 'disabled'; ?>"
-           <?php if ($current_page >= $total_pages) echo 'aria-disabled="true"'; ?>>
-            ถัดไป <i class="fas fa-chevron-right"></i>
-        </a>
-
-    <?php endif; ?>
-</div>
-
 
 <?php
 // 7. เรียกใช้ Footer
