@@ -7,6 +7,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 3. เรียกใช้ไฟล์เชื่อมต่อฐานข้อมูล
     require_once('db_connect.php');
+    require_once('includes/log_function.php');
 
     // 4. รับค่าจากฟอร์ม
     $username = $_POST['username'];
@@ -36,6 +37,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['role'] = $user['role']; 
 
+            $log_desc = "พนักงาน '{$user['full_name']}' (Username: {$user['username']}) ได้เข้าสู่ระบบ (ผ่าน Password)";
+            log_action($pdo, $user['id'], 'login_password', $log_desc);
+            
             // 9. ส่งกลับไปหน้า index.php
             header("Location: index.php");
             exit;

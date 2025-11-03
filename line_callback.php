@@ -3,7 +3,8 @@
 
 session_start();
 require_once('line_config.php');
-require_once('db_connect.php'); //
+require_once('db_connect.php');
+require_once('includes/log_function.php');
 
 // --- (ฟังก์ชัน die_with_error ... เหมือนเดิม) ---
 function die_with_error($message) {
@@ -84,6 +85,9 @@ try {
         $_SESSION['full_name'] = $staff_user['full_name'];
         $_SESSION['role'] = $staff_user['role']; 
 
+        $log_desc = "พนักงาน '{$staff_user['full_name']}' (ID: {$staff_user['id']}) ได้เข้าสู่ระบบ (ผ่าน LINE)";
+        log_action($pdo, $staff_user['id'], 'login_line', $log_desc);
+        
         // ส่งไปหน้า Dashboard "Admin"
         header("Location: index.php"); 
         exit;

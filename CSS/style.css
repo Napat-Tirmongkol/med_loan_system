@@ -387,7 +387,7 @@ body {
 .btn-danger {
     background-color: var(--color-danger);
     color: white;
-    text-decoration: none; /* (เพิ่ม กันเหนียวสำหรับแท็ก <a>) */
+    text-decoration: none !important; /* (เพิ่ม กันเหนียวสำหรับแท็ก <a>) */
 }
 .btn-danger:hover {
     background-color: #b91c1c;

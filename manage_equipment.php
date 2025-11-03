@@ -173,11 +173,14 @@ try {
                             <?php endif; ?>
 
                             <?php if ($_SESSION['role'] == 'admin'): ?>
+
                                 <button type="button" class="btn btn-manage" style="margin-left: 5px;" onclick="openEditPopup(<?php echo $row['id']; ?>)">แก้ไข</button>
-                                <a href="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
+
+                                <button type="button"
                                     class="btn btn-danger"
-                                    style="margin-left: 5px; text-decoration: none;"
-                                    onclick="confirmDeleteEquipment(event, <?php echo $row['id']; ?>)">ลบ</a>
+                                    style="margin-left: 5px;"
+                                    data-url="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
+                                    onclick="confirmDeleteEquipment(this)">ลบ</button>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -237,10 +240,10 @@ try {
 
                     <?php if ($_SESSION['role'] == 'admin'): ?>
                         <button type="button" class="btn btn-manage" onclick="openEditPopup(<?php echo $row['id']; ?>)">แก้ไข</button>
-                        <a href="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
+                        <button type="button"
                             class="btn btn-danger"
-                            style="text-decoration: none;"
-                            onclick="confirmDeleteEquipment(event, <?php echo $row['id']; ?>)">ลบ</a>
+                            data-url="delete_equipment_process.php?id=<?php echo $row['id']; ?>"
+                            onclick="confirmDeleteEquipment(this)">ลบ</button>
                     <?php endif; ?>
                 </div>
 
@@ -313,6 +316,25 @@ try {
     function confirmDeleteEquipment(event, id) {
         event.preventDefault();
         const url = event.currentTarget.href;
+        Swal.fire({
+            title: "คุณแน่ใจหรือไม่?",
+            text: "คุณกำลังจะลบอุปกรณ์นี้ออกจากระบบ! (จะลบได้ต่อเมื่อไม่มีประวัติการยืม)",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "ใช่, ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = url;
+            }
+        });
+    }
+
+    function confirmDeleteEquipment(buttonElement) {
+        // (ไม่ต้องใช้ event.preventDefault() แล้ว)
+        const url = buttonElement.getAttribute('data-url'); // ◀️ ดึง URL จาก data-url
         Swal.fire({
             title: "คุณแน่ใจหรือไม่?",
             text: "คุณกำลังจะลบอุปกรณ์นี้ออกจากระบบ! (จะลบได้ต่อเมื่อไม่มีประวัติการยืม)",
