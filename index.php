@@ -16,7 +16,7 @@ try {
     $count_overdue = $stmt_overdue->fetchColumn();
 } catch (PDOException $e) {
     $count_borrowed = $count_available = $count_maintenance = $count_overdue = 0;
-    $kpi_error = "เกิดข้อผิดพลาดในการดึงข้อมูล KPI: " . $e->getMessage();
+    $kpi_error = "เกิดข้อผิดพลาดในการดึงข้อมูล KPI: " . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 4. ดึงข้อมูล "รายการรออนุมัติ" (Pending Requests) 
@@ -42,7 +42,7 @@ try {
     $pending_requests = $stmt_pending->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    $pending_error = "เกิดข้อผิดพลาดในการดึงข้อมูลคำขอ: " . $e->getMessage();
+    $pending_error = "เกิดข้อผิดพลาดในการดึงข้อมูลคำขอ: " . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 5. ดึงข้อมูล "รายการที่เกินกำหนดคืน"
@@ -66,7 +66,7 @@ try {
     $overdue_items = $stmt_overdue->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
-    $overdue_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเกินกำหนด: " . $e->getMessage();
+    $overdue_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเกินกำหนด: " . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 6. ดึงข้อมูล "รายการเคลื่อนไหวล่าสุด" (5 รายการ)
@@ -85,7 +85,7 @@ try {
     $stmt_activity->execute();
     $recent_activity = $stmt_activity->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    $activity_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเคลื่อนไหว: " . $e->getMessage();
+    $activity_error = "เกิดข้อผิดพลาดในการดึงข้อมูลเคลื่อนไหว: " . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 

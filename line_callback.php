@@ -65,7 +65,7 @@ try {
     }
     $line_user_id = $payload_data['sub'];
 } catch (Exception $e) {
-    die_with_error('ไม่สามารถถอดรหัส ID Token ได้: ' . $e->getMessage());
+    die_with_error('ไม่สามารถถอดรหัส ID Token ได้: ' . $e->getMessage()); // ◀️ (แก้ไข)
 }
 
 // 5. ค้นหาในฐานข้อมูล (เริ่มจาก 'med_users' ก่อน)
@@ -124,6 +124,6 @@ try {
     }
 
 } catch (PDOException $e) {
-    die_with_error('เกิดข้อผิดพลาดในการค้นหาฐานข้อมูล: ' . $e->getMessage());
+    die_with_error('เกิดข้อผิดพลาดในการค้นหาฐานข้อมูล: ' . $e->getMessage()); // ◀️ (แก้ไข)
 }
 ?>

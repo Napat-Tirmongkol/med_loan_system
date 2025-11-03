@@ -1,4 +1,3 @@
-```php
 <?php
 // borrow_list.php (อัปเดต: แก้ไข PHP Logic)
 
@@ -29,7 +28,7 @@ try {
 
 } catch (PDOException $e) {
     $equipments = [];
-    $equip_error = "เกิดข้อผิดพลาด: " . $e->getMessage();
+    $equip_error = "เกิดข้อผิดพลาด: " . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 4. ตั้งค่าตัวแปรสำหรับ Header

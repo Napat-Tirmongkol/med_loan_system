@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = 'บันทึกการเปลี่ยนแปลงสำเร็จ';
 
     } catch (PDOException $e) {
-        $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+        $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

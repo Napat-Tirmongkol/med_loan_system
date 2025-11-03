@@ -65,6 +65,6 @@ try {
     }
 
 } catch (PDOException $e) {
-    die("เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage() . " <a href='manage_students.php'>กลับหน้าหลัก</a>");
+    die("เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage() . " <a href='manage_students.php'>กลับหน้าหลัก</a>"); // ◀️ (แก้ไข)
 }
 ?>

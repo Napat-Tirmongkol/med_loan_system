@@ -67,7 +67,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     } catch (Exception $e) {
         $pdo->rollBack(); 
-        $response['message'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
+        $response['message'] = 'เกิดข้อผิดพลาด: ' . $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

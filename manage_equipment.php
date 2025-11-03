@@ -72,7 +72,7 @@ try {
     $stmt->execute($params);
     $equipments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    echo "เกิดข้อผิดพลาดในการดึงข้อมูล: " . $e->getMessage();
+    echo "เกิดข้อผิดพลาดในการดึงข้อมูล: " . $e->getMessage(); // ◀️ (แก้ไข)
     $equipments = [];
 }
 ?>

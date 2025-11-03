@@ -73,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = 'เพิ่มบัญชีพนักงานสำเร็จ';
 
     } catch (Exception $e) {
-        $response['message'] = $e->getMessage();
+        $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

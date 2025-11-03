@@ -64,7 +64,7 @@ try {
     }
 
 } catch (PDOException $e) {
-    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+    $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 6. ส่งคำตอบ (JSON) กลับไปให้ JavaScript

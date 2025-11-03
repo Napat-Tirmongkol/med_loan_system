@@ -17,7 +17,7 @@ if (!function_exists('log_action')) {
             $stmt->execute([$user_id, $action, $description]);
         } catch (PDOException $e) {
             // (หากการบันทึก Log ล้มเหลว ก็ไม่เป็นไร อย่าให้หน้าเว็บหลักล่ม)
-            error_log("Failed to write to med_logs: " . $e->getMessage());
+            error_log("Failed to write to med_logs: " . $e->getMessage()); // ◀️ (แก้ไข)
         }
     }
 }

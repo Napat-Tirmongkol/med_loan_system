@@ -428,6 +428,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // (ใช้ Event Delegation ดักจับการคลิกที่ body)
+    document.body.addEventListener('click', function(event) {
+        
+        // (1) ค้นหาว่าสิ่งที่คลิก (หรือแม่ของมัน) คือลิงก์ Pagination ในส่วนของ Log หรือไม่
+        const paginationLink = event.target.closest('#admin-log-content .pagination-container a');
+
+        // (2) ถ้าใช่ลิงก์ pagination และลิงก์นั้น "ไม่" disabled
+        if (paginationLink && !paginationLink.classList.contains('disabled')) {
+            
+            // (3) ป้องกันไม่ให้หน้าเว็บรีเฟรช (นี่คือหัวใจของ AJAX)
+            event.preventDefault(); 
+            
+            const url = new URL(paginationLink.href);
+            
+            // (4) เพิ่ม parameter 'ajax=1' เพื่อบอก PHP ว่าเราต้องการแค่ตาราง
+            url.searchParams.set('ajax', '1'); 
+            
+            // (5) หา Wrapper ที่จะเอาเนื้อหาไปใส่
+            const contentWrapper = document.getElementById('admin-log-content');
+            if (!contentWrapper) return; // (ถ้าหาไม่เจอ ก็ไม่ต้องทำอะไร)
+
+            // (6) (เสริม) ทำให้ตารางจางลงเล็กน้อย เพื่อบอกว่ากำลังโหลด
+            contentWrapper.style.opacity = '0.5';
+
+            // (7) ยิง Request ไปดึงข้อมูลหน้าใหม่
+            fetch(url.href)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    // (8) เมื่อได้ HTML ใหม่ (เฉพาะตาราง+ปุ่ม) ให้ยัดลงไปแทนที่ของเดิม
+                    contentWrapper.innerHTML = html;
+                    contentWrapper.style.opacity = '1'; // (ทำให้กลับมาเข้ม)
+                })
+                .catch(error => {
+                    console.error('Failed to load page content:', error);
+                    contentWrapper.style.opacity = '1'; // (คืนค่าถ้าพลาด)
+                    alert('เกิดข้อผิดพลาดในการโหลดหน้า');
+                });
+        }
+    });
+});
 </script>
 
 </body>

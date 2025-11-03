@@ -52,7 +52,7 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    header("Location: edit_profile.php?status=error&message=" . urlencode($e->getMessage()));
+    header("Location: edit_profile.php?status=error&message=" . urlencode($e->getMessage())); // ◀️ (แก้ไข)
     exit;
 }
 ?>

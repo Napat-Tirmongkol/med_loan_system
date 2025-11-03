@@ -23,7 +23,7 @@ try {
         throw new Exception("ไม่พบข้อมูลผู้ใช้งาน");
     }
 } catch (PDOException $e) {
-    die("เกิดข้อผิดพลาด: " . $e->getMessage());
+    die("เกิดข้อผิดพลาด: " . $e->getMessage()); // ◀️ (แก้ไข)
 }
 
 // 4. ตั้งค่าตัวแปรสำหรับ Header

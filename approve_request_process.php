@@ -78,7 +78,7 @@ try {
 } catch (Exception $e) {
     // 9. ย้อนกลับ
     $pdo->rollBack();
-    $response['message'] = $e->getMessage();
+    $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 echo json_encode($response);

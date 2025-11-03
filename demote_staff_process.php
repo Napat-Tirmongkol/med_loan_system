@@ -76,7 +76,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
     } catch (Exception $e) {
-        $response['message'] = $e->getMessage();
+        $response['message'] = $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {

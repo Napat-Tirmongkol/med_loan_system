@@ -43,7 +43,7 @@ try {
     $response['message'] = 'Search successful';
 
 } catch (PDOException $e) {
-    $response['message'] = 'Database Error: ' . $e->getMessage();
+    $response['message'] = 'Database Error: ' . $e->getMessage(); // ◀️ (แก้ไข)
 }
 
 // 3. ส่งผลลัพธ์ (JSON) กลับไป

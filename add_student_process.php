@@ -57,7 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response['message'] = 'เพิ่มผู้ใช้งานใหม่สำเร็จ';
 
     } catch (PDOException $e) {
-        $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage();
+        $response['message'] = 'เกิดข้อผิดพลาด DB: ' . $e->getMessage(); // ◀️ (แก้ไข)
     }
 
 } else {
