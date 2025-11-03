@@ -181,10 +181,10 @@ include('includes/header.php');
                                         </button>
                                     <?php endif; ?>
 
-                                    <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
+                                    <button type="button"
                                         class="btn btn-danger"
                                         style="margin-left: 5px;"
-                                        onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</a>
+                                        onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">ลบ</button>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -241,11 +241,11 @@ include('includes/header.php');
                         </button>
 
                         <?php if (!$student['linked_user_id']): ?>
-                            <a href="delete_student_process.php?id=<?php echo $student['id']; ?>"
+                            <button type="button"
                                 class="btn btn-danger"
                                 onclick="confirmDeleteStudent(event, <?php echo $student['id']; ?>)">
                                 <i class="fas fa-trash"></i> ลบ
-                            </a>
+                            </button>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -285,7 +285,7 @@ include('includes/header.php');
             <tbody>
                 <?php if (empty($staff_accounts)): ?>
                     <tr>
-                        <td colspan="5" style="text-align: center;">ไม่มีข้อมูลบัญชีพนักงาน</td>
+                        <td colspan="6" style="text-align: center;">ไม่มีข้อมูลบัญชีพนักงาน</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($staff_accounts as $staff): ?>
@@ -371,7 +371,6 @@ include('includes/header.php');
     // (JS: "student" -> "user")
     function confirmDeleteStudent(event, id) {
         event.preventDefault();
-        const url = event.currentTarget.href;
         Swal.fire({
             title: "คุณแน่ใจหรือไม่?",
             text: "คุณกำลังจะลบผู้ใช้งานนี้ (เฉพาะที่ Admin เพิ่มเอง)",
@@ -383,7 +382,23 @@ include('includes/header.php');
             cancelButtonText: "ยกเลิก"
         }).then((result) => {
             if (result.isConfirmed) {
-                window.location.href = url;
+                const formData = new FormData();
+                formData.append('id', id);
+                fetch('delete_student_process.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        Swal.fire('ลบสำเร็จ!', 'ผู้ใช้งานถูกลบเรียบร้อยแล้ว', 'success').then(() => location.reload());
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+                });
             }
         });
     }
@@ -651,7 +666,7 @@ include('includes/header.php');
     function confirmDeleteStaff(userId, staffName) {
         Swal.fire({
             title: `คุณแน่ใจหรือไม่?`,
-            text: `คุณกำลังจะลบบัญชีพนักงาน [${staffName}] ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อไม่มีประวัติการอนุมัติค้างอยู่)`,
+            text: `คุณกำลังจะลบบัญชีพนักงาน [${staffName}] ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อไม่มีประวัติการทำรายการค้างอยู่)`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#d33",
@@ -661,8 +676,8 @@ include('includes/header.php');
         }).then((result) => {
             if (result.isConfirmed) {
                 const formData = new FormData();
-                formData.append('user_id_to_demote', userId);
-                fetch('demote_staff_process.php', {
+                formData.append('user_id_to_delete', userId);
+                fetch('delete_staff_process.php', {
                         method: 'POST',
                         body: formData
                     })

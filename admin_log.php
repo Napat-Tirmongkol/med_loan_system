@@ -15,7 +15,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
 $is_ajax = isset($_GET['ajax']) && $_GET['ajax'] == '1';
 
 // 3.2: ตั้งค่า Pagination
-$limit = 20; 
+$limit = 10; 
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;

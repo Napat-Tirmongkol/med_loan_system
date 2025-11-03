@@ -185,6 +185,11 @@ function openEditPopup(equipmentId) {
                 width: '600px',
                 showCancelButton: true,
                 confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                showDenyButton: true, // (เพิ่ม) แสดงปุ่มลบ
+                denyButtonText: `<i class="fas fa-trash"></i> ลบอุปกรณ์นี้`,
+                denyButtonColor: 'var(--color-danger)',
+                denyButtonAriaLabel: 'Delete this equipment',
+
                 cancelButtonText: 'ยกเลิก',
                 confirmButtonColor: 'var(--color-primary, #0B6623)',
                 focusConfirm: false,
@@ -207,6 +212,11 @@ function openEditPopup(equipmentId) {
                 if (result.isConfirmed) {
                     Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success').then(() => location.reload());
                 }
+            });
+
+            // (เพิ่ม) Logic สำหรับปุ่ม "ลบ"
+            document.querySelector('.swal2-deny').addEventListener('click', function(e) {
+                confirmDeleteEquipment(e, equipmentId);
             });
         })
         .catch(error => {

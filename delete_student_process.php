@@ -7,16 +7,20 @@ include('includes/check_session.php');
 require_once('db_connect.php');
 require_once('includes/log_function.php'); // ◀️ (ใหม่) เรียกใช้ Log
 
+// Set header to return JSON
+header('Content-Type: application/json');
+
 // 2. ตรวจสอบสิทธิ์ Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    die("คุณไม่มีสิทธิ์ดำเนินการ <a href='index.php'>กลับหน้าหลัก</a>");
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
 }
 
-// 3. รับ ID ผู้ใช้งาน
-$student_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// 3. รับ ID ผู้ใช้งานจาก POST
+$student_id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
 
 if ($student_id == 0) {
-    header("Location: manage_students.php?error=no_id");
+    echo json_encode(['status' => 'error', 'message' => 'ไม่ได้ระบุ ID ผู้ใช้งาน']);
     exit;
 }
 
@@ -28,7 +32,7 @@ try {
     $transaction_count = $stmt_check->fetchColumn();
 
     if ($transaction_count > 0) {
-        header("Location: manage_students.php?error=fk_constraint&id=" . $student_id);
+        echo json_encode(['status' => 'error', 'message' => 'ไม่สามารถลบผู้ใช้งานได้ เนื่องจากมีประวัติการทำรายการค้างอยู่!']);
         exit;
     }
 
@@ -57,14 +61,15 @@ try {
         log_action($pdo, $admin_user_id, $log_action_type, $log_desc);
         // ◀️ --- (จบส่วน Log) --- ◀️
 
-        header("Location: manage_students.php?delete=success");
+        echo json_encode(['status' => 'success', 'message' => 'ลบผู้ใช้งานสำเร็จ']);
         exit;
     } else {
-        header("Location: manage_students.php?error=not_found&id=" . $student_id);
+        echo json_encode(['status' => 'error', 'message' => 'ไม่พบผู้ใช้งานหรือไม่สามารถลบได้']);
         exit;
     }
 
 } catch (PDOException $e) {
-    die("เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage() . " <a href='manage_students.php'>กลับหน้าหลัก</a>"); // ◀️ (แก้ไข)
+    echo json_encode(['status' => 'error', 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+    exit;
 }
 ?>

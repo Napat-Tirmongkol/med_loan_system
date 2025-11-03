@@ -1,21 +1,29 @@
 <?php
 // delete_equipment_process.php
 
-// 1. "จ้างยาม" และ "เชื่อมต่อ DB"
-include('includes/check_session.php');
+// 1. (เปลี่ยน) ใช้ยามสำหรับ AJAX
+include('includes/check_session_ajax.php');
 require_once('db_connect.php');
 require_once('includes/log_function.php'); // ◀️ (เพิ่ม) เรียกใช้ Log
 
 // 2. ตรวจสอบสิทธิ์ Admin
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'admin') {
-    die("คุณไม่มีสิทธิ์ดำเนินการ <a href='index.php'>กลับหน้าหลัก</a>");
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'คุณไม่มีสิทธิ์ดำเนินการ']);
+    exit;
 }
 
+// (ใหม่) ตั้งค่า Header เป็น JSON
+header('Content-Type: application/json');
+$response = ['status' => 'error', 'message' => 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'];
+
 // 3. รับ ID อุปกรณ์
-$equipment_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+// (เปลี่ยน) รับจาก POST หรือ GET ก็ได้
+$equipment_id = isset($_REQUEST['id']) ? (int)$_REQUEST['id'] : 0;
 
 if ($equipment_id == 0) {
-    header("Location: manage_equipment.php?error=no_id");
+    $response['message'] = 'ไม่ได้ระบุ ID อุปกรณ์';
+    echo json_encode($response);
     exit;
 }
 
@@ -28,8 +36,8 @@ try {
     $transaction_count = $stmt_check->fetchColumn();
 
     if ($transaction_count > 0) {
-        header("Location: manage_equipment.php?error=fk_constraint&id=" . $equipment_id);
-        exit;
+        // (เปลี่ยน) ส่งเป็น JSON error กลับไป
+        throw new Exception("ไม่สามารถลบได้ เนื่องจากมีประวัติการยืม/คำขอ ค้างอยู่!");
     }
 
     // ◀️ --- (เพิ่มส่วน Log) --- ◀️
@@ -56,14 +64,16 @@ try {
         log_action($pdo, $admin_user_id, 'delete_equipment', $log_desc);
         // ◀️ --- (จบส่วน Log) --- ◀️
 
-        header("Location: manage_equipment.php?delete=success");
-        exit;
+        $response['status'] = 'success';
+        $response['message'] = 'ลบอุปกรณ์สำเร็จ';
     } else {
-        header("Location: manage_equipment.php?error=not_found&id=" . $equipment_id);
-        exit;
+        throw new Exception("ไม่พบอุปกรณ์ที่ต้องการลบ (ID: $equipment_id)");
     }
 
-} catch (PDOException $e) {
-    die("เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage() . " <a href='manage_equipment.php'>กลับหน้าหลัก</a>"); // ◀️ (แก้ไข)
+} catch (Exception $e) {
+    $response['message'] = $e->getMessage();
 }
+
+echo json_encode($response);
+exit;
 ?>
