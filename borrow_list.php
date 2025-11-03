@@ -2,12 +2,10 @@
 // borrow_list.php (อัปเดตสำหรับ V5 - ใช้ Types)
 
 @session_start(); 
-// (⚠️ โค้ดสำหรับ Development Mode ⚠️)
-$_SESSION['student_id'] = 1; 
-$_SESSION['student_full_name'] = "ผู้ใช้ทดสอบ";
-// (⚠️ จบส่วน Development Mode ⚠️)
+include('includes/check_student_session.php'); // (◀️ เพิ่มยามเข้ามา)
+// (⚠️ ลบส่วน Development Mode ออกแล้ว ⚠️)
 
-require_once('db_connect.php'); 
+require_once('db_connect.php');
 
 $student_id = $_SESSION['student_id']; 
 
