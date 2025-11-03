@@ -1301,7 +1301,11 @@ body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
 
     /* 3.2 แสดง "การ์ด" */
     .mobile-only {
+<<<<<<< HEAD
         display: flex; /* (หรือ block ตามความเหมาะสม) */
+=======
+        display: block; /* (เปลี่ยนเป็น block เพื่อให้ flex ในไฟล์ PHP ทำงานถูกต้อง) */
+>>>>>>> 8440e8f921da6f7d864c435f03e6c4936b0735b5
     }
     .student-card-list {
         display: flex;
