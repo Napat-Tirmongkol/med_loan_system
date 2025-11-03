@@ -107,7 +107,7 @@ try {
     </div>
 
     <!-- (Mobile View) Card List -->
-    <div class="mobile-only" style="display: flex; flex-direction: column; gap: 1rem;">
+    <div class="mobile-only equipment-card-list">
         <?php if (isset($error_message)): ?>
             <div class="history-card" style="color: red; justify-content: center;"><?php echo $error_message; ?></div>
         <?php elseif (empty($equipment_types)): ?>

@@ -68,22 +68,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_item->execute([$name, $serial_number, $description, $new_status, $item_id]);
 
         // 4. อัปเดตจำนวนใน Type (ถ้าสถานะเปลี่ยน)
-        // 4.1 เปลี่ยนจาก available -> maintenance
         if ($old_status == 'available' && $new_status == 'maintenance') {
             $stmt_type = $pdo->prepare("UPDATE med_equipment_types SET available_quantity = available_quantity - 1 WHERE id = ?");
             $stmt_type->execute([$type_id]);
         }
-        // 4.2 เปลี่ยนจาก maintenance -> available
         elseif ($old_status == 'maintenance' && $new_status == 'available') {
              $stmt_type = $pdo->prepare("UPDATE med_equipment_types SET available_quantity = available_quantity + 1 WHERE id = ?");
              $stmt_type->execute([$type_id]);
         }
-
-        // 5. บันทึก Log
-        $admin_user_id = $_SESSION['user_id'] ?? null;
-        $admin_user_name = $_SESSION['full_name'] ?? 'System';
-        $log_desc = "Admin '{$admin_user_name}' ได้แก้ไขข้อมูลอุปกรณ์ (ItemID: {$item_id}) ชื่อ '{$name}' (SN: {$serial_number}) สถานะเปลี่ยนจาก '{$old_status}' เป็น '{$new_status}'";
-        log_action($pdo, $admin_user_id, 'edit_equipment_item', $log_desc);
 
         $pdo->commit();
         $response['status'] = 'success';

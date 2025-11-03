@@ -29,28 +29,27 @@ if ($equipment_id == 0) {
 
 // 4. ตรวจสอบ Foreign Key และ ดำเนินการ
 try {
-    // (เช็ค Constraint ... )
-    $sql_check = "SELECT COUNT(*) FROM med_transactions WHERE equipment_id = ?";
+    // (แก้ไข) เช็คว่ามี "ชิ้น" อุปกรณ์ผูกอยู่หรือไม่
+    $sql_check = "SELECT COUNT(*) FROM med_equipment_items WHERE type_id = ?";
     $stmt_check = $pdo->prepare($sql_check);
     $stmt_check->execute([$equipment_id]);
     $transaction_count = $stmt_check->fetchColumn();
 
     if ($transaction_count > 0) {
-        // (เปลี่ยน) ส่งเป็น JSON error กลับไป
-        throw new Exception("ไม่สามารถลบได้ เนื่องจากมีประวัติการยืม/คำขอ ค้างอยู่!");
+        // (แก้ไข) ส่งเป็น JSON error กลับไป
+        throw new Exception("ไม่สามารถลบได้ เนื่องจากยังมีอุปกรณ์รายชิ้นผูกอยู่กับประเภทนี้ ($transaction_count ชิ้น)");
     }
 
     // ◀️ --- (เพิ่มส่วน Log) --- ◀️
     // (ดึงข้อมูลอุปกรณ์ "ก่อน" ที่จะลบ)
-    $stmt_get = $pdo->prepare("SELECT name, serial_number FROM med_equipment WHERE id = ?");
+    $stmt_get = $pdo->prepare("SELECT name FROM med_equipment_types WHERE id = ?");
     $stmt_get->execute([$equipment_id]);
-    $equip_info = $stmt_get->fetch(PDO::FETCH_ASSOC);
-    $equip_name_for_log = $equip_info ? "{$equip_info['name']} (SN: {$equip_info['serial_number']})" : "ID: {$equipment_id}";
+    $equip_name_for_log = $stmt_get->fetchColumn() ?: "ID: {$equipment_id}";
     // ◀️ --- (จบส่วนดึงข้อมูล Log) --- ◀️
 
 
     // 6. ดำเนินการลบ
-    $sql_delete = "DELETE FROM med_equipment WHERE id = ?";
+    $sql_delete = "DELETE FROM med_equipment_types WHERE id = ?";
     $stmt_delete = $pdo->prepare($sql_delete);
     $stmt_delete->execute([$equipment_id]);
 
@@ -60,14 +59,14 @@ try {
         // ◀️ --- (เพิ่มส่วน Log) --- ◀️
         $admin_user_id = $_SESSION['user_id'] ?? null;
         $admin_user_name = $_SESSION['full_name'] ?? 'System';
-        $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้ลบอุปกรณ์: '{$equip_name_for_log}'";
-        log_action($pdo, $admin_user_id, 'delete_equipment', $log_desc);
+        $log_desc = "Admin '{$admin_user_name}' (ID: {$admin_user_id}) ได้ลบประเภทอุปกรณ์: '{$equip_name_for_log}'";
+        log_action($pdo, $admin_user_id, 'delete_equipment_type', $log_desc);
         // ◀️ --- (จบส่วน Log) --- ◀️
 
         $response['status'] = 'success';
-        $response['message'] = 'ลบอุปกรณ์สำเร็จ';
+        $response['message'] = 'ลบประเภทอุปกรณ์สำเร็จ';
     } else {
-        throw new Exception("ไม่พบอุปกรณ์ที่ต้องการลบ (ID: $equipment_id)");
+        throw new Exception("ไม่พบประเภทอุปกรณ์ที่ต้องการลบ (ID: $equipment_id)");
     }
 
 } catch (Exception $e) {

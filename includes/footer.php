@@ -750,6 +750,118 @@ function openManageItemsPopup(typeId) {
         });
 }
 
+function confirmDeleteItem(itemId, typeId) {
+    Swal.fire({
+        title: "คุณแน่ใจหรือไม่?",
+        text: "คุณกำลังจะลบอุปกรณ์ชิ้นนี้ออกจากระบบอย่างถาวร (จะลบได้ต่อเมื่อสถานะไม่ใช่ 'ถูกยืม' เท่านั้น)",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "ใช่, ลบเลย",
+        cancelButtonText: "ยกเลิก"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            const formData = new FormData();
+            formData.append('item_id', itemId);
+            formData.append('type_id', typeId); // (ส่ง type_id ไปด้วย)
+
+            fetch('delete_item_process.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire('ลบสำเร็จ!', data.message, 'success')
+                    .then(() => {
+                        Swal.close();
+                        openManageItemsPopup(typeId);
+                    });
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด!', data.message, 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('เกิดข้อผิดพลาด AJAX', error.message, 'error');
+            });
+        }
+    });
+}
+
+function openEditItemPopup(itemId) {
+    Swal.fire({ title: 'กำลังโหลดข้อมูล...', didOpen: () => { Swal.showLoading(); } });
+    
+    // 1. ดึงข้อมูลเดิม
+    fetch(`get_item_data.php?id=${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') throw new Error(data.message);
+            const item = data.item;
+
+            // 2. สร้างตัวเลือกสถานะ
+            const statusOptions = `
+                <option value="available" ${item.status === 'available' ? 'selected' : ''}>ว่าง (Available)</option>
+                <option value="maintenance" ${item.status === 'maintenance' ? 'selected' : ''}>ซ่อมบำรุง (Maintenance)</option>
+            `;
+
+            // 3. แสดง Popup
+            Swal.fire({
+                title: '🔧 แก้ไขอุปกรณ์รายชิ้น (ID: ' + item.id + ')',
+                html: `
+                <form id="swalEditItemForm" style="text-align: left; margin-top: 20px;">
+                    <input type="hidden" name="item_id" value="${item.id}">
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_name" style="font-weight: bold; display: block; margin-bottom: 5px;">ชื่อเฉพาะ:</label>
+                        <input type="text" name="name" id="swal_item_name" value="${item.name}" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_serial" style="font-weight: bold; display: block; margin-bottom: 5px;">เลขซีเรียล (Serial Number):</label>
+                        <input type="text" name="serial_number" id="swal_item_serial" value="${item.serial_number || ''}" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_desc" style="font-weight: bold; display: block; margin-bottom: 5px;">รายละเอียด/หมายเหตุ:</label>
+                        <textarea name="description" id="swal_item_desc" rows="2" style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">${item.description || ''}</textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label for="swal_item_status" style="font-weight: bold; display: block; margin-bottom: 5px;">สถานะ:</label>
+                        <select name="status" id="swal_item_status" required style="width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #ddd;">
+                            ${statusOptions}
+                        </select>
+                    </div>
+                </form>`,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกการเปลี่ยนแปลง',
+                preConfirm: () => {
+                    const form = document.getElementById('swalEditItemForm');
+                    if (!form.checkValidity()) {
+                        Swal.showValidationMessage('กรุณากรอกข้อมูลให้ครบถ้วน');
+                        return false;
+                    }
+                    return fetch('edit_item_process.php', { method: 'POST', body: new FormData(form) })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.status !== 'success') throw new Error(data.message);
+                            return data;
+                        })
+                        .catch(error => { Swal.showValidationMessage(`เกิดข้อผิดพลาด: ${error.message}`); });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire('บันทึกสำเร็จ!', 'แก้ไขข้อมูลอุปกรณ์เรียบร้อย', 'success').then(() => {
+                        Swal.close();
+                        openManageItemsPopup(item.type_id);
+                    });
+                }
+            });
+        })
+        .catch(error => {
+            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+        });
+}
+
 </script>
 
 </body>
