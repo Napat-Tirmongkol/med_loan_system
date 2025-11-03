@@ -113,9 +113,10 @@ try {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 70px;">รูปภาพ</th> <th>ID</th>
+                    <th style="width: 70px;">รูปภาพ</th> 
+                    <th>ID</th>
                     <th>ชื่ออุปกรณ์</th>
-                    <th>เลขซีเรียล</th>
+                    <th style="width: 52px;">เลขซีเรียล</th>
                     <th>รายละเอียด</th>
                     <th>สถานะ</th>
                     <th style="width: 210px;">จัดการ</th> </tr>
