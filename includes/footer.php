@@ -32,6 +32,11 @@ $current_page = $current_page ?? 'index';
         จัดการผู้ใช้
     </a>
     
+    <a href="manage_fines.php" class="<?php echo ($current_page == 'manage_fines') ? 'active' : ''; ?>">
+        <i class="fas fa-file-invoice-dollar"></i>
+        จัดการค่าปรับ
+    </a>
+    
     <a href="report_borrowed.php" class="<?php echo ($current_page == 'report') ? 'active' : ''; ?>">
         <i class="fas fa-chart-line"></i>
         รายงาน

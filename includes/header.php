@@ -1,23 +1,10 @@
 <?php
-// includes/check_student_session.php
-// (เวอร์ชันแก้ไข: ลบ session_destroy ออก)
+// includes/header.php (Admin Header)
+@session_start(); // (ต้องมี session_start() เพื่อให้ $_SESSION['full_name'] ทำงาน)
 
-// 1. เริ่ม Session ก่อนเสมอ
-@session_start();
-
-// 2. ตรวจสอบว่า 'student_id' มีอยู่จริง และ "ไม่ใช่ค่าว่าง" (0, null, "")
-if (empty($_SESSION['student_id'])) {
-    
-    // 3. (แก้ไข) ถ้าไม่มีค่า ให้ส่งกลับไปหน้า Login เท่านั้น
-    //    (ห้ามทำลาย Session เพราะอาจจะแค่กำลังโหลดช้า)
-    
-    // 4. ส่งกลับไปหน้า Login
-    header("Location: line_login.php");
-    exit; // จบการทำงาน
-}
-
-// 5. ถ้ามี Session 'student_id' ที่ "ไม่ใช่ 0" (Log in แล้ว)
-//    สคริปต์ก็จะทำงานต่อไปได้
+// (ลบโค้ด check_student_session.php ที่ผิดออกไปจากส่วนนี้)
+// (หน้าที่เรียกใช้ header.php เช่น index.php, manage_equipment.php ฯลฯ)
+// (จะต้องเรียกใช้ check_session.php ของตัวเองก่อนเสมอ)
 ?>
 <!DOCTYPE html>
 <html lang="th">
