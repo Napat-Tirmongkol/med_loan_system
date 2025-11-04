@@ -981,6 +981,31 @@ body {
     height: 16px;
     border-radius: 4px;
 }
+
+/* =========================================
+ * (ใหม่) สไตล์สำหรับ Info Box ใน SweetAlert
+ * ========================================= */
+.swal-info-box {
+    text-align: left;
+    margin: 10px 0;
+    padding: 10px 15px;
+    background: #f3f4f6; /* Light grey background for light mode */
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+.swal-info-box p {
+    margin: 0;
+    padding: 5px 0;
+    color: var(--color-text-dark); /* Dark text for light mode */
+}
+.swal-info-box p strong {
+    color: var(--color-text-dark); /* Dark text for light mode */
+}
+.swal-info-box .swal-info-danger,
+.swal-info-box .swal-info-danger strong {
+    color: var(--color-danger) !important; /* Red text */
+}
+
 /* =========================================
  * (ใหม่) DARK MODE STYLES (Toggleable)
  * ========================================= */
@@ -1126,6 +1151,18 @@ body.dark-mode .footer-nav a.active {
 body.dark-mode .footer-nav a:hover {
     background-color: #374151; /* (เข้มขึ้นนิดนึงเมื่อ Hover) */
 }
+
+body.dark-mode .swal-info-box {
+    background: #374151; /* Darker background for dark mode */
+    border-color: #4b5563;
+}
+body.dark-mode .swal-info-box p {
+    color: var(--color-text-muted); /* Light grey text */
+}
+body.dark-mode .swal-info-box p strong {
+    color: var(--color-text-dark); /* White text */
+}
+
 
 /* =========================================
  * (ใหม่) DARK MODE STYLES for SweetAlert2
@@ -1301,11 +1338,7 @@ body.dark-mode .theme-toggle-btn .fa-moon { display: none; }
 
     /* 3.2 แสดง "การ์ด" */
     .mobile-only {
-<<<<<<< HEAD
         display: flex; /* (หรือ block ตามความเหมาะสม) */
-=======
-        display: block; /* (เปลี่ยนเป็น block เพื่อให้ flex ในไฟล์ PHP ทำงานถูกต้อง) */
->>>>>>> 8440e8f921da6f7d864c435f03e6c4936b0735b5
     }
     .student-card-list {
         display: flex;
@@ -1431,4 +1464,61 @@ body.dark-mode .header-row:hover .collapse-toggle-btn {
 body.dark-mode .pagination-container .btn.disabled {
     background-color: #374151; /* (สีเข้มขึ้นสำหรับ Dark Mode) */
     color: #6b7280;
+}
+
+/* =========================================
+ * (ใหม่) สไตล์ฟอร์มที่ทันสมัย (สำหรับ edit_profile.php)
+ * ========================================= */
+
+/* (ปรับปรุง Layout ของฟอร์มใน Section Card) */
+.section-card .form-group {
+    margin-bottom: 1.25rem; /* เพิ่มระยะห่างระหว่างช่อง */
+}
+
+/* (สไตล์ของ Label/หัวข้อ) */
+.section-card .form-group label {
+    font-size: 0.95rem; /* (ปรับขนาดเล็กน้อย) */
+    font-weight: 600; 
+    color: var(--color-text-muted); /* (ใช้สีเทา Muted) */
+    margin-bottom: 0.5rem; /* (8px) */
+    display: block;
+}
+
+/* (สไตล์ของช่องกรอกข้อมูล Input) */
+.section-card .form-group input[type="text"],
+.section-card .form-group input[type="password"] {
+    width: 100%;
+    padding: 12px 16px; /* (ทำให้ช่องสูงและมีระยะห่างภายใน) */
+    font-size: 1rem; /* (ขนาดตัวอักษรตอนพิมพ์) */
+    font-family: 'RSU', Arial, sans-serif;
+    color: var(--color-text-dark); /* (สีตัวอักษร) */
+    
+    /* (สำคัญ) ใช้สีพื้นหลังที่อ่อนกว่าสี content เล็กน้อย */
+    /* Light Mode: จะเป็นสีเทาอ่อน (#f5f6fa) */
+    /* Dark Mode: จะเป็นสีเทาเข้ม (#1f2937) */
+    background-color: var(--color-page-bg); 
+    
+    border: 1px solid var(--border-color);
+    border-radius: 8px; /* (เพิ่มความมน) */
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* (สไตล์ตอนที่ผู้ใช้กำลังคลิก/พิมพ์) */
+.section-card .form-group input[type="text"]:focus,
+.section-card .form-group input[type="password"]:focus {
+    outline: none;
+    border-color: var(--color-primary); /* (เปลี่ยนสีขอบเป็นสีเขียว) */
+    box-shadow: 0 0 0 3px rgba(11, 102, 35, 0.2); /* (เพิ่มเงาเรืองแสงสีเขียว) */
+}
+
+/* (สไตล์สำหรับช่องที่ถูก Disabled เช่น ช่องสถานภาพ) */
+.section-card .form-group input[disabled] {
+    /* * Light Mode: จะเป็นสีเทาอ่อน (#e5e7eb)
+     * Dark Mode: จะเป็นสีเทาเข้ม (#4b5563)
+    */
+    background-color: var(--border-color); 
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    opacity: 0.8; /* (ทำให้จางลงเล็กน้อย) */
 }
